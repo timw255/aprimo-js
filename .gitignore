@@ -1,0 +1,35 @@
+# Node modules
+node_modules/
+
+# Output build
+dist/
+*.tsbuildinfo
+
+# Test coverage output
+coverage/
+
+# Env files (secrets)
+.env
+.env.local
+.env.*.local
+
+# Vite/Vitest cache
+.vite/
+.vitest/
+
+# IDE/editor settings
+.idea/
+.vscode/
+*.sw?
+.vs/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS junk
+.DS_Store
+Thumbs.db

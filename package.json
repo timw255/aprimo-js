@@ -1,0 +1,75 @@
+{
+  "name": "aprimo-js",
+  "version": "1.0.0-alpha.0",
+  "description": "A JavaScript SDK for interacting with Aprimo REST APIs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timw255/aprimo-js.git"
+  },
+  "homepage": "https://github.com/timw255/aprimo-js",
+  "bugs": {
+    "url": "https://github.com/timw255/aprimo-js/issues"
+  },
+  "keywords": [
+    "aprimo",
+    "dam"
+  ],
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./content-selector": {
+      "import": "./dist/content-selector.mjs",
+      "require": "./dist/content-selector.js"
+    },
+    "./model": {
+      "types": "./dist/model/index.d.ts",
+      "import": "./dist/model/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "model": ["dist/model/index.d.ts"]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rimraf dist coverage",
+    "test": "vitest",
+    "test:cover": "vitest --run --coverage",
+    "test:int": "vitest run --config vitest.config.ts",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\"",
+    "format": "prettier --write \"src/**/*.{js,ts,tsx}\" \"tests/**/*.{js,ts,tsx}\"",
+    "generate:model-barrel": "node scripts/generate-model-barrel.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
+    "@vitest/coverage-v8": "^3.1.1",
+    "dotenv": "^16.4.7",
+    "eslint": "^9.24.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  },
+  "dependencies": {
+    "axios": "^1.8.4"
+  }
+}
