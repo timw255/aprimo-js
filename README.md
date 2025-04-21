@@ -1,12 +1,12 @@
 # Aprimo JS
 
-A lightweight SDK for interacting with the Aprimo REST API.
+A JavaScript SDK for interacting with Aprimo REST APIs.
 
 > **This is a community-supported SDK and is not officially maintained or endorsed by Aprimo.** It is provided as a helpful resource for developers building with Aprimo. See the [Aprimo Developers](https://developers.aprimo.com/) site for official documentation and supported resources.
 
 ## Available Modules
 
-Aprimo JS provides a modular interface to most core Aprimo APIs.
+Aprimo JS provides a modular interface to most core Aprimo DAM APIs.
 
 The following modules are available:
 
