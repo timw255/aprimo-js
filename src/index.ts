@@ -37,3 +37,7 @@ export function createClient(options: CreateClientOptions): Aprimo {
 
   return new Aprimo(environment, tokenProvider);
 }
+
+export { Aprimo };
+export { computeSetActions } from "./utils";
+export { Expander } from "./expander";
