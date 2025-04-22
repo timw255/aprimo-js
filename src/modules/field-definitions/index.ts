@@ -331,8 +331,8 @@ export const fieldDefinitions = (client: HttpClient) => ({
     void,
     unknown
   > {
-    let currentPage = params.page || 1;
-    const pageSize = params.pageSize || 100;
+    let currentPage = params.page ?? 1;
+    const pageSize = params.pageSize ?? 100;
 
     while (true) {
       const result = await this.get(
@@ -343,7 +343,7 @@ export const fieldDefinitions = (client: HttpClient) => ({
 
       yield result;
 
-      if (!result.ok || !result.data || !result.data._links?.next) break;
+      if (!result.ok || !result.data?._links?.next) break;
 
       currentPage++;
     }

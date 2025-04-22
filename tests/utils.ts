@@ -5,7 +5,7 @@ export function expectOk<T>(res: ApiResult<T>) {
   if (!res.ok) {
     console.error(
       `API Error [${res.status}]:`,
-      res.error?.message || res.error,
+      res.error?.message ?? res.error,
       res.error?.raw,
     );
   }

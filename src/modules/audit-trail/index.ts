@@ -11,7 +11,10 @@ export const auditTrail = (client: HttpClient) => ({
     const params = new URLSearchParams();
     if (filter) params.set("filter", filter);
 
-    const url = `/api/core/record/${recordId}/trail${params.toString() ? `?${params}` : ""}`;
+    const basePath = `/api/core/record/${recordId}/trail`;
+    const queryString = params.toString();
+    const url = queryString ? `${basePath}?${queryString}` : basePath;
+    
     return client.get(url);
   },
 

@@ -1,6 +1,6 @@
 {
   "name": "aprimo-js",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.1-alpha.0",
   "description": "A JavaScript SDK for interacting with Aprimo REST APIs",
   "license": "MIT",
   "repository": {

@@ -9,7 +9,8 @@ export const permissions = (client: HttpClient) => ({
   get: async (
     params?: QueryParams,
   ): Promise<ApiResult<PagedCollection<Permission>>> => {
-    const headers = buildHeaders(params, undefined);
+    const headers = buildHeaders(params);
+
     return await client.get("/api/core/permissions", headers);
   },
 });

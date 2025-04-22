@@ -15,7 +15,7 @@ export const userGroups = (client: HttpClient) => ({
   get: async (
     params?: QueryParams,
   ): Promise<ApiResult<PagedCollection<UserGroup>>> => {
-    const headers = buildHeaders(params, undefined);
+    const headers = buildHeaders(params);
 
     return await client.get("/api/core/usergroups", headers);
   },

@@ -36,11 +36,11 @@ export type ApiResult<T> = {
 };
 
 export class Aprimo {
-  private damHttp: HttpClient;
-  private moHttp: HttpClient;
-  private environment: string;
-  private damUrl: string;
-  private moUrl: string;
+  private readonly damHttp: HttpClient;
+  private readonly moHttp: HttpClient;
+  private readonly environment: string;
+  private readonly damUrl: string;
+  private readonly moUrl: string;
 
   public auditTrail: ReturnType<typeof auditTrail>;
   public classifications: ReturnType<typeof classifications>;

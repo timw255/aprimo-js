@@ -3,9 +3,9 @@ import { ApiResult } from "./client";
 
 export class HttpClient {
   constructor(
-    private tokenProvider: () => Promise<string>,
-    private baseUrl: string,
-    private baseHeaders: Record<string, string> = {},
+    private readonly tokenProvider: () => Promise<string>,
+    private readonly baseUrl: string,
+    private readonly baseHeaders: Record<string, string> = {},
   ) {}
 
   async request<T>(
@@ -34,7 +34,7 @@ export class HttpClient {
       return { ok: true, status: response.status, data: response.data };
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const status = error.response?.status || 500;
+        const status = error.response?.status ?? 500;
         const data = error.response?.data;
 
         return {
@@ -42,7 +42,7 @@ export class HttpClient {
           status,
           error: {
             type: data?.exceptionType ?? "HttpError",
-            message: data?.exceptionMessage || error.message,
+            message: data?.exceptionMessage ?? error.message,
             raw: data,
           },
         };

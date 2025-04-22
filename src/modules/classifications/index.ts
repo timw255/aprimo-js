@@ -62,8 +62,8 @@ export const classifications = (client: HttpClient) => ({
     params: QueryParams = {},
     expander?: Expander,
   ): AsyncGenerator<ApiResult<PagedCollection<Classification>>, void, unknown> {
-    let currentPage = params.page || 1;
-    const pageSize = params.pageSize || 100;
+    let currentPage = params.page ?? 1;
+    const pageSize = params.pageSize ?? 100;
 
     while (true) {
       const result = await this.get(
@@ -73,7 +73,7 @@ export const classifications = (client: HttpClient) => ({
 
       yield result;
 
-      if (!result.ok || !result.data || !result.data._links?.next) break;
+      if (!result.ok || !result.data?._links?.next) break;
 
       currentPage++;
     }
