@@ -1,27 +1,27 @@
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
-import { Setting } from "../../model/Setting";
+import { Setting, SettingScope } from "../../model/Setting";
 import { SettingCollection } from "../../model/SettingCollection";
 
 export const settings = (client: HttpClient) => {
   // Overload for single setting
   function getByName(
     name: string,
-    scope?: "user" | "usergroup" | "site" | "system",
+    scope?: SettingScope,
     scopeId?: string,
   ): Promise<ApiResult<Setting>>;
 
   // Overload for multiple settings
   function getByName(
     names: string[],
-    scope?: "user" | "usergroup" | "site" | "system",
+    scope?: SettingScope,
     scopeId?: string,
   ): Promise<ApiResult<SettingCollection>>;
 
   // Implementation
   async function getByName(
     names: string | string[],
-    scope?: "user" | "usergroup" | "site" | "system",
+    scope?: SettingScope,
     scopeId?: string,
   ): Promise<ApiResult<Setting> | ApiResult<SettingCollection>> {
     const nameList = Array.isArray(names) ? names : [names];

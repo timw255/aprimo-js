@@ -24,7 +24,7 @@ export type CreateFileTypeRequest = Omit<
   registeredFieldGroups?: SetActions<string>;
 };
 
-export type UpdateFileTypeRequest = CreateFileTypeRequest;
+export type UpdateFileTypeRequest = Partial<CreateFileTypeRequest>;
 
 export interface CreateFileTypeResponse {
   id: string;

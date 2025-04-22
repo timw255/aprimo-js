@@ -15,7 +15,7 @@ export type CreateRuleRequest = Omit<CreateFrom<Rule>, "version"> & {
   actions?: SetActions<RuleAction>;
 };
 
-export type UpdateRuleRequest = CreateRuleRequest;
+export type UpdateRuleRequest = Partial<CreateRuleRequest>;
 
 export interface CreateRuleResponse {
   id: string;

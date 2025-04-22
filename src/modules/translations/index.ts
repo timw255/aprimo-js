@@ -9,7 +9,7 @@ import { buildHeaders } from "../../utils";
 
 export type CreateTranslationRequest = CreateFrom<Translation>;
 
-export type UpdateTranslationRequest = CreateTranslationRequest;
+export type UpdateTranslationRequest = Partial<CreateTranslationRequest>;
 
 export interface CreateTranslationResponse {
   id: string;
