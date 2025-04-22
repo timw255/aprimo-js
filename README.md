@@ -1,4 +1,4 @@
-# Aprimo JS
+# Aprimo JS &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/timw255/aprimo-js/blob/main/LICENSE) [![npm version](https://img.shields.io/npm/v/aprimo-js.svg)](https://www.npmjs.com/package/aprimo-js)
 
 A JavaScript SDK for interacting with Aprimo REST APIs.
 
