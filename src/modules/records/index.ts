@@ -37,8 +37,13 @@ export const records = (client: HttpClient) => ({
   get: async (
     params?: QueryParams,
     expander?: Expander,
+    languages?: "*" | string[],
   ): Promise<ApiResult<PagedCollection<Record>>> => {
     const headers = buildHeaders(params, expander);
+
+    if (languages) {
+      headers["languages"] = languages === "*" ? "*" : languages.join(",");
+    }
 
     return client.get("/api/core/records", headers);
   },
@@ -46,6 +51,7 @@ export const records = (client: HttpClient) => ({
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
+    languages?: "*" | string[],
   ): AsyncGenerator<ApiResult<PagedCollection<Record>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;
@@ -54,6 +60,7 @@ export const records = (client: HttpClient) => ({
       const result = await this.get(
         { ...params, page: currentPage, pageSize },
         expander,
+        languages,
       );
 
       yield result;
@@ -67,17 +74,12 @@ export const records = (client: HttpClient) => ({
   getById: async (
     id: string,
     expander?: Expander,
-    languages?: string | string[] | "*",
+    languages?: "*" | string[],
   ): Promise<ApiResult<Record>> => {
     const headers = buildHeaders(undefined, expander);
 
     if (languages) {
-      headers["languages"] =
-        languages === "*"
-          ? "*"
-          : Array.isArray(languages)
-            ? languages.join(",")
-            : languages;
+      headers["languages"] = languages === "*" ? "*" : languages.join(",");
     }
 
     return client.get(`/api/core/record/${id}`, headers);

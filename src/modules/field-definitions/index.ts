@@ -306,17 +306,12 @@ export const fieldDefinitions = (client: HttpClient) => ({
   get: async (
     params?: QueryParams,
     expander?: Expander,
-    languages?: string | string[] | "*",
+    languages?: "*" | string[],
   ): Promise<ApiResult<PagedCollection<FieldDefinition>>> => {
     const headers = buildHeaders(params, expander);
 
     if (languages) {
-      headers["languages"] =
-        languages === "*"
-          ? "*"
-          : Array.isArray(languages)
-            ? languages.join(",")
-            : languages;
+      headers["languages"] = languages === "*" ? "*" : languages.join(",");
     }
 
     return client.get("/api/core/fielddefinitions", headers);
@@ -325,7 +320,7 @@ export const fieldDefinitions = (client: HttpClient) => ({
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
-    languages?: string | string[] | "*",
+    languages?: "*" | string[],
   ): AsyncGenerator<
     ApiResult<PagedCollection<FieldDefinition>>,
     void,
