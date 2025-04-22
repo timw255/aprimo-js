@@ -1,5 +1,9 @@
 import { QueryParams } from "../../../src/model/QueryParams";
-import { buildHeaders, computeSetActions, queryParamsToHeaders } from "../../../src/utils";
+import {
+  buildHeaders,
+  computeSetActions,
+  queryParamsToHeaders,
+} from "../../../src/utils";
 import { describe, it, expect } from "vitest";
 import { Expander } from "../../../src/expander";
 import { Record } from "../../../src/model";
@@ -7,10 +11,11 @@ import { Record } from "../../../src/model";
 describe("buildHeaders", () => {
   it("merges queryParams and expander headers", () => {
     const expander = Expander.create()
-      .for<Record>("Record").expand("fields", "files");
-  
+      .for<Record>("Record")
+      .expand("fields", "files");
+
     const headers = buildHeaders({ page: 1, pageSize: 10 }, expander);
-  
+
     expect(headers).toEqual(
       expect.objectContaining({
         page: "1",

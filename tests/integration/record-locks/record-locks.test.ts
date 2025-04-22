@@ -10,10 +10,12 @@ const aprimo = createClient({
 });
 
 describe("recordLocks integration", () => {
+  let recordId: string;
+
   it("gets record locks for a record", async () => {
-    const res = await aprimo.recordLocks.getforRecord(
-      process.env.TEST_RECORD_ID!,
-    );
+    recordId = process.env.TEST_RECORD_ID!;
+
+    const res = await aprimo.recordLocks.getforRecord(recordId);
 
     expectOk(res);
     expect(res.data).toBeDefined();

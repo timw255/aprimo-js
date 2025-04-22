@@ -49,7 +49,11 @@ describe("classifications integration", () => {
   });
 
   it("updates with immediateSearchIndexUpdate", async () => {
-    const res = await aprimo.classifications.update(id, { name: "Fast Update" }, true);
+    const res = await aprimo.classifications.update(
+      id,
+      { name: "Fast Update" },
+      true,
+    );
 
     expectOk(res);
   });

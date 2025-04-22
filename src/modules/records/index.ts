@@ -104,7 +104,7 @@ export const records = (client: HttpClient) => ({
     const headers = immediateSearchIndexUpdate
       ? { "set-immediateSearchIndexUpdate": "true" }
       : undefined;
-  
+
     return client.put(`/api/core/record/${id}`, request, headers);
   },
 

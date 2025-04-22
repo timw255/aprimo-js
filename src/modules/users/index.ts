@@ -28,7 +28,7 @@ export const users = (client: HttpClient) => ({
     params?: QueryParams,
   ): Promise<ApiResult<PagedCollection<User>>> => {
     const headers = buildHeaders(params);
-    
+
     return await client.get("/api/core/users", headers);
   },
 

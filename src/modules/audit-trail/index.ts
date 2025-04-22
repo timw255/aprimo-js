@@ -14,7 +14,7 @@ export const auditTrail = (client: HttpClient) => ({
     const basePath = `/api/core/record/${recordId}/trail`;
     const queryString = params.toString();
     const url = queryString ? `${basePath}?${queryString}` : basePath;
-    
+
     return client.get(url);
   },
 

@@ -47,7 +47,7 @@ describe("records integration", () => {
     const res = await aprimo.records.update(
       recordId,
       { status: "draft" },
-      true
+      true,
     );
 
     expectOk(res);

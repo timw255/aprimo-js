@@ -12,15 +12,15 @@ const aprimo = createClient({
 });
 
 describe("files integration", () => {
+  let recordId: string;
   let fileId: string;
 
   it("checks out a file", async () => {
+    recordId = process.env.TEST_RECORD_ID!;
+
     const expander = Expander.create().for<Record>("Record").expand("files");
 
-    const recordRes = await aprimo.records.getById(
-      process.env.TEST_RECORD_ID!,
-      expander,
-    );
+    const recordRes = await aprimo.records.getById(recordId, expander);
 
     const file = recordRes.data?._embedded?.files?.items?.[0];
 

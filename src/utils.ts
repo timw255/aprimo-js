@@ -2,7 +2,10 @@ import { Expander } from "./expander";
 import { QueryParams } from "./model/QueryParams";
 import { SetActions } from "./model/SetActions";
 
-export function buildHeaders(params?: QueryParams, expander?: Expander): Record<string, string> {
+export function buildHeaders(
+  params?: QueryParams,
+  expander?: Expander,
+): Record<string, string> {
   return {
     ...queryParamsToHeaders(params),
     ...(expander?.getHeaders?.() ?? {}),

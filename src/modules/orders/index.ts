@@ -60,7 +60,7 @@ export const orders = (client: HttpClient) => ({
     expander?: Expander,
   ): Promise<ApiResult<PagedCollection<Order>>> => {
     const headers = buildHeaders(params, expander);
-    
+
     return await client.get("/api/core/orders", headers);
   },
 

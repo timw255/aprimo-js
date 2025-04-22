@@ -14,13 +14,12 @@ const aprimo = createClient({
 });
 
 describe("public links integration", () => {
+  let recordId: string;
   let publicLinkId: string;
 
-  it("should have real tests soon", () => {
-    expect(true).toBe(true);
-  });
-
   it("creates a public link", async () => {
+    recordId = process.env.TEST_RECORD_ID!;
+
     const expander = Expander.create()
       .for<Record>("Record")
       .expand("masterfile")
@@ -29,10 +28,7 @@ describe("public links integration", () => {
       .for<FileVersion>("FileVersion")
       .expand("renditions");
 
-    const recordRes = await aprimo.records.getById(
-      process.env.TEST_RECORD_ID!,
-      expander,
-    );
+    const recordRes = await aprimo.records.getById(recordId, expander);
 
     const rendition =
       recordRes.data?._embedded?.masterfile?._embedded?.fileversions
@@ -44,8 +40,8 @@ describe("public links integration", () => {
 
     const res = await aprimo.publicLinks.create({
       renditionName: "HD 720p",
-      recordId: process.env.TEST_RECORD_ID!,
-      uri: `https://p1.aprimocdn.net/${process.env.APRIMO_ENVIRONMENT!}/${process.env.TEST_RECORD_ID!}/${encodeURIComponent(process.env.TEST_RECORD_ID!)}${encodeURIComponent("_HD 720p")}.jpg`,
+      recordId: recordId,
+      uri: `https://p1.aprimocdn.net/${process.env.APRIMO_ENVIRONMENT!}/${recordId}/${encodeURIComponent(recordId)}${encodeURIComponent("_HD 720p")}.jpg`,
       provider: "FastlyCDN",
     });
 
@@ -64,7 +60,7 @@ describe("public links integration", () => {
 
   it("updates the public link", async () => {
     const res = await aprimo.publicLinks.update(publicLinkId, {
-      uri: `https://p1.aprimocdn.net/${process.env.APRIMO_ENVIRONMENT!}/${process.env.TEST_RECORD_ID!}/${encodeURIComponent(process.env.TEST_RECORD_ID!)}${encodeURIComponent("_HD 720p_updated")}.jpg`,
+      uri: `https://p1.aprimocdn.net/${process.env.APRIMO_ENVIRONMENT!}/${recordId}/${encodeURIComponent(recordId)}${encodeURIComponent("_HD 720p_updated")}.jpg`,
     });
 
     expectOk(res);

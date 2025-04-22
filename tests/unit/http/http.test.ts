@@ -3,7 +3,8 @@ import axios, { AxiosError } from "axios";
 import { HttpClient } from "../../../src/http";
 
 vi.mock("axios");
-(axios as any).isAxiosError = (e: any): e is AxiosError => e.isAxiosError === true;
+(axios as any).isAxiosError = (e: any): e is AxiosError =>
+  e.isAxiosError === true;
 
 const mockedAxios = axios as unknown as { request: ReturnType<typeof vi.fn> };
 
@@ -65,7 +66,9 @@ describe("HttpClient", () => {
 
   it("omits Content-Type for FormData", async () => {
     const form = new FormData();
-    mockedAxios.request = vi.fn().mockResolvedValueOnce({ status: 200, data: {} });
+    mockedAxios.request = vi
+      .fn()
+      .mockResolvedValueOnce({ status: 200, data: {} });
 
     await client.post("/upload", form);
 

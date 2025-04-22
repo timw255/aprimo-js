@@ -118,11 +118,11 @@ describe("uploader integration", () => {
     const file = createMockFile("preaborted.txt", 25 * 1024 * 1024);
     const controller = new AbortController();
     controller.abort(); // Abort before calling upload
-  
+
     const res = await aprimo.uploader.uploadFile(file, {
       signal: controller.signal,
     });
-  
+
     expect(res.ok).toBe(false);
     expect(res.error?.type).toBe("AbortError");
   });
