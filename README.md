@@ -390,6 +390,44 @@ if (!res.ok) {
 }
 ```
 
+## Understanding `ApiResult<T>`
+ 
+API calls returns an `ApiResult<T>` object to help you handle success and error cases consistently.
+ 
+```ts
+type ApiResult<T> = {
+  ok: boolean;
+  status: number;
+  data?: T;
+  error?: {
+    type?: string;
+    message?: string;
+    raw?: unknown;
+  };
+};
+```
+ 
+### Fields:
+
+| Field   | Type     | Description                                                              |
+|---------|----------|--------------------------------------------------------------------------|
+| `ok`    | boolean  | Indicates if the request was successful (`true` for 2xx responses)       |
+| `status`| number   | The HTTP status code returned by the API                                 |
+| `data`  | `T`      | The deserialized response body (only present if successful)              |
+| `error` | object   | Contains error info when `ok` is `false`, with `type`, `message`, `raw`  |
+
+### Example Usage:
+
+```ts
+const result = await aprimo.records.getById(id);
+
+if (!result.ok) {
+  console.error("Request failed:", result.error?.message);
+} else {
+  console.log("Record id:", result.data?.id);
+}
+```
+
 ## Content Selector (Browser Only)
 
 The Aprimo Content Selector is a browser-based UI that allows users to browse and select content from Aprimo DAM. It’s ideal for embedding in CMS plugins, marketing tools, or custom portals.
