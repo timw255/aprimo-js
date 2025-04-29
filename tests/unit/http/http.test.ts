@@ -96,4 +96,59 @@ describe("HttpClient", () => {
     expect(res.error?.type).toBe("UnknownError");
     expect(res.error?.message).toBe("Boom");
   });
+
+  it("retries on 429 if retryHandler allows", async () => {
+    const err429 = createAxiosError();
+    err429.response!.status = 429;
+
+    mockedAxios.request = vi
+      .fn()
+      .mockRejectedValueOnce(err429) // First attempt fails
+      .mockResolvedValueOnce({ status: 200, data: { success: true } }); // Second succeeds
+
+    const retryHandler = vi.fn().mockResolvedValue(true);
+
+    client = new HttpClient(
+      tokenProvider,
+      "https://api.test.com",
+      {},
+      {
+        maxRetries: 2,
+        retryHandler,
+      },
+    );
+
+    const res = await client.get("/retry");
+
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
+    expect(retryHandler).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.request).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives up if retryHandler disallows", async () => {
+    const err429 = createAxiosError();
+    err429.response!.status = 429;
+
+    mockedAxios.request = vi.fn().mockRejectedValue(err429);
+
+    const retryHandler = vi.fn().mockResolvedValue(false);
+
+    client = new HttpClient(
+      tokenProvider,
+      "https://api.test.com",
+      {},
+      {
+        maxRetries: 2,
+        retryHandler,
+      },
+    );
+
+    const res = await client.get("/no-retry");
+
+    expect(res.ok).toBe(false);
+    expect(res.status).toBe(429);
+    expect(retryHandler).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.request).toHaveBeenCalledTimes(1);
+  });
 });

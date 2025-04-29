@@ -428,6 +428,39 @@ if (!result.ok) {
 }
 ```
 
+## 429 Rate Limit Handling
+
+The `HttpClient` supports automatic retries for `429 Too Many Requests` errors.
+
+### Enabling Retries
+
+```typescript
+import { createClient } from "aprimo-js";
+
+const aprimo = createClient({
+  environment: "your-env",
+  clientId: "your-client-id",
+  clientSecret: "your-client-secret",
+  authMode: "client_credentials",
+  httpOptions: {
+    maxRetries: 3,
+    retryHandler: async (error, attempt) => {
+      await new Promise((r) => setTimeout(r, 500 * attempt));
+      return true;
+    },
+  },
+});
+```
+
+- `maxRetries`: Maximum number of total attempts (default `0`).
+- `retryHandler`: Optional async function to control delay or cancel retry.
+
+### Behavior
+
+- Retries only occur for `429` errors.
+- `retryHandler` controls delay before retrying.
+- If `retryHandler` returns `false`, no further attempts will be made.
+
 ## Content Selector (Browser Only)
 
 The Aprimo Content Selector is a browser-based UI that allows users to browse and select content from Aprimo DAM. It’s ideal for embedding in CMS plugins, marketing tools, or custom portals.
