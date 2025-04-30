@@ -23,6 +23,7 @@ import { settings } from "./modules/settings";
 import { publicLinks } from "./modules/public-links";
 import { recordLocks } from "./modules/record-locks";
 import { files } from "./modules/files";
+import { languages } from "./modules/languages";
 
 export type ApiResult<T> = {
   ok: boolean;
@@ -51,6 +52,7 @@ export class Aprimo {
   public fieldGroups: ReturnType<typeof fieldGroups>;
   public files: ReturnType<typeof files>;
   public fileTypes: ReturnType<typeof fileTypes>;
+  public languages: ReturnType<typeof languages>;
   public maintenanceJobs: ReturnType<typeof maintenanceJobs>;
   public orders: ReturnType<typeof orders>;
   public permissions: ReturnType<typeof permissions>;
@@ -95,6 +97,7 @@ export class Aprimo {
     this.fieldGroups = fieldGroups(this.damHttp);
     this.files = files(this.damHttp);
     this.fileTypes = fileTypes(this.damHttp);
+    this.languages = languages(this.damHttp);
     this.maintenanceJobs = maintenanceJobs(this.damHttp);
     this.orders = orders(this.damHttp);
     this.permissions = permissions(this.damHttp);

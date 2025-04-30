@@ -19,6 +19,7 @@ The following modules are available:
 - `fieldGroups`
 - `fileTypes`
 - `files`
+- `languages`
 - `maintenanceJobs`
 - `orders`
 - `permissions`
