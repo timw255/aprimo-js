@@ -1,6 +1,8 @@
 import { ApiResult } from "../../client";
+import { Expander } from "../../expander";
 import { HttpClient } from "../../http";
 import { SearchResponse } from "../../model/SearchResponse";
+import { buildHeaders } from "../../utils";
 
 export interface SearchExpression {
   disabledKeywords?: string[];
@@ -38,16 +40,27 @@ export interface FacetValue {
 export const search = (client: HttpClient) => ({
   records: async (
     request: RecordSearchRequest,
+    expander?: Expander,
   ): Promise<ApiResult<SearchResponse>> => {
-    return client.post<SearchResponse>("/api/core/search/records", request);
+    const headers = buildHeaders(undefined, expander);
+
+    return client.post<SearchResponse>(
+      "/api/core/search/records",
+      request,
+      headers,
+    );
   },
 
   classifications: async (
     request: ClassificationSearchRequest,
+    expander?: Expander,
   ): Promise<ApiResult<SearchResponse>> => {
+    const headers = buildHeaders(undefined, expander);
+
     return client.post<SearchResponse>(
       "/api/core/search/classifications",
       request,
+      headers,
     );
   },
 
