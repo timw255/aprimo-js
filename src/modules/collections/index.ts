@@ -5,6 +5,7 @@ import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
 import { Expander } from "../../expander";
+import { SetActions } from "../../model";
 
 export interface CreateStaticCollectionRequest {
   name: string;
@@ -40,6 +41,10 @@ export interface SubExpression {
 
 export interface CreateCollectionResponse {
   id: string;
+}
+
+export interface UpdateStaticCollectionRecordsRequest {
+  records: SetActions<string>;
 }
 
 export const collections = (client: HttpClient) => ({
@@ -102,5 +107,12 @@ export const collections = (client: HttpClient) => ({
 
   delete: async (id: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/collection/${id}`);
+  },
+
+  updateRecords: async (
+    id: string,
+    request: UpdateStaticCollectionRecordsRequest,
+  ): Promise<ApiResult<void>> => {
+    return client.put(`/api/core/collection/${id}/records`, request);
   },
 });

@@ -13,6 +13,7 @@ describe("collections integration", () => {
   let staticId: string;
   let dynamicId: string;
   let dynamicSubExpressionId: string;
+  let testRecordId: string;
 
   it("creates a static collection", async () => {
     const res = await aprimo.collections.createStatic({
@@ -75,6 +76,28 @@ describe("collections integration", () => {
     }
 
     expect(count).toBeGreaterThan(0);
+  });
+
+  it("adds the test record to the test static collection", async () => {
+    testRecordId = process.env.TEST_RECORD_ID!;
+
+    const res = await aprimo.collections.updateRecords(staticId, {
+      records: {
+        addOrUpdate: [testRecordId],
+      },
+    });
+
+    expectOk(res);
+  });
+
+  it("removes the test record from the test static collection", async () => {
+    const res = await aprimo.collections.updateRecords(staticId, {
+      records: {
+        remove: [testRecordId],
+      },
+    });
+
+    expectOk(res);
   });
 
   it("deletes the static collection", async () => {
