@@ -29,7 +29,8 @@
     },
     "./model": {
       "types": "./dist/model/index.d.ts",
-      "import": "./dist/model/index.js"
+      "import": "./dist/model/index.js",
+      "require": "./dist/model/index.js"
     }
   },
   "typesVersions": {
