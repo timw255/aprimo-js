@@ -29,6 +29,46 @@ export interface CreateRecordRequest {
   };
 }
 
+export interface UpdateRecordRequest {
+  status?: "draft" | "released" | "archived";
+  fields?: SetActions<Field>;
+  classifications?: {
+    addOrUpdate: { id: string }[];
+    remove?: { id: string }[];
+  };
+  files?: {
+    master?: string;
+    addOrUpdate?: {
+      id: string;
+      versions?: {
+        addOrUpdate?: {
+          id: string;
+          fileName?: string;
+          versionLabel?: string;
+          comment?: string;
+          additionalFiles?: {
+            addOrUpdate?: {
+              id: string;
+              label?: string;
+              filename?: string;
+              type?: string;
+            }[];
+            remove?: {
+              id: string;
+            }[];
+          };
+        }[];
+        remove?: {
+          id: string;
+        }[];
+      };
+    }[];
+    remove?: {
+      id: string;
+    }[];
+  };
+}
+
 export interface CreateRecordResponse {
   id: string;
 }
@@ -98,7 +138,7 @@ export const records = (client: HttpClient) => ({
 
   update: async (
     id: string,
-    request: Partial<CreateRecordRequest>,
+    request: UpdateRecordRequest,
     immediateSearchIndexUpdate: boolean = false,
   ): Promise<ApiResult<void>> => {
     const headers = immediateSearchIndexUpdate
