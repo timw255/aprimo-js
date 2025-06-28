@@ -2,6 +2,7 @@ import { ApiLink } from "./ApiLink";
 import { User } from "./User";
 
 export interface PublicLink {
+  additionalFileId: string;
   canDelete: boolean;
   createdOn: string;
   fileSize: number;
