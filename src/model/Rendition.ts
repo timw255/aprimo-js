@@ -9,6 +9,10 @@ export interface Rendition {
   publishedUri: string;
   type: string;
   uri: string;
+  width: number,
+  height: number,
+  resizeWidth: number,
+  resizeHeight: number,
   _links: RenditionLinks;
   _embedded?: {
     [K in Exclude<

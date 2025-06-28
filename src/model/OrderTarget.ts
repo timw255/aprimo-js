@@ -2,6 +2,7 @@ import { ApiLink } from "./ApiLink";
 import { OrderTargetAction } from "./OrderTargetAction";
 
 export interface OrderTarget {
+  additionalFileId: string;
   actions: OrderTargetAction[];
   assetType: string;
   attempt: number;
