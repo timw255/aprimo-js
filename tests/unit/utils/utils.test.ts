@@ -12,7 +12,8 @@ describe("buildHeaders", () => {
   it("merges queryParams and expander headers", () => {
     const expander = Expander.create()
       .for<Record>("Record")
-      .expand("fields", "files");
+      .expand("fields", "files")
+      .selectRecordFields("Title");
 
     const headers = buildHeaders({ page: 1, pageSize: 10 }, expander);
 
@@ -21,6 +22,7 @@ describe("buildHeaders", () => {
         page: "1",
         pageSize: "10",
         "select-Record": "fields,files",
+        "select-record-fields": "Title",
       }),
     );
   });

@@ -176,6 +176,15 @@ const res = await aprimo.records.getById(id, expander);
 console.log("Record with expanded links:", res.data);
 ```
 
+Limit the returned fields when expanding `Record` fields:
+
+```ts
+const partial = Expander.create()
+  .for<Record>("Record").expand("fields").selectRecordFields("Title", "MyField");
+
+const res = await aprimo.records.getById(id, partial);
+```
+
 > ℹ️ Learn more about using `Expander` in the [Expanding Linked Resources](#expanding-linked-resources) section below.
 
 ### Update a record
