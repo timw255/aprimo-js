@@ -7,6 +7,7 @@ export interface UserGroup {
   id: string;
   modifiedOn: string;
   name: string;
+  isActive: boolean;
   organizationId: string;
   tag: string;
   _links: UserGroupLinks;

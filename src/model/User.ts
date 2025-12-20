@@ -12,11 +12,14 @@ export interface User {
   firstName: string;
   id: string;
   imageUri: string;
+  isActive: boolean;
   languageForUIId: string;
   languageId: string;
   lastName: string;
+  lastSuccessfulLogOnDate: string;
   modifiedOn: string;
   name: string;
+  secondLastSuccessfulLogOnDate: string;
   storageQuota: number;
   storageUsed: number;
   tag: string;
