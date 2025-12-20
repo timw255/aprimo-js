@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/timw255/aprimo-js.git"
+    "url": "git+https://github.com/timw255/aprimo-js.git"
   },
   "homepage": "https://github.com/timw255/aprimo-js",
   "bugs": {
@@ -35,7 +35,9 @@
   },
   "typesVersions": {
     "*": {
-      "model": ["dist/model/index.d.ts"]
+      "model": [
+        "dist/model/index.d.ts"
+      ]
     }
   },
   "files": [
