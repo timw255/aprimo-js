@@ -3,6 +3,7 @@ import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
 import { buildHeaders } from "../../utils";
+import { User } from "../../model";
 
 export interface CreateUserRequest {
   name: string;
@@ -15,12 +16,6 @@ export interface UpdateUserRequest {
   email?: string;
   firstName?: string;
   lastName?: string;
-}
-
-export interface User {
-  id: string;
-  username: string;
-  email: string;
 }
 
 export const users = (client: HttpClient) => ({
