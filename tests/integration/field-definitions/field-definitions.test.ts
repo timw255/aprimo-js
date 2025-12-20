@@ -56,6 +56,12 @@ describe("fieldDefinitions integration", () => {
     id = res.data!.id;
   });
 
+  it("reads the field definition by id", async () => {
+    const res = await aprimo.fieldDefinitions.getById(id);
+    expectOk(res);
+    expect(res.data?.id).toBe(id);
+  });
+
   it("updates the field definition", async () => {
     const res = await aprimo.fieldDefinitions.update(id, {
       defaultValue: "Default Value",

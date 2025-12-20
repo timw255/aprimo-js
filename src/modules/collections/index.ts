@@ -57,6 +57,14 @@ export const collections = (client: HttpClient) => ({
     return client.get("/api/core/collections", headers);
   },
 
+  getById: async (
+    id: string,
+    expander?: Expander,
+  ): Promise<ApiResult<Collection>> => {
+    const headers = buildHeaders(undefined, expander);
+    return client.get(`/api/core/collection/${id}`, headers);
+  },
+
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,

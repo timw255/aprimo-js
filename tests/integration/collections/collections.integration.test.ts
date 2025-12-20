@@ -60,6 +60,12 @@ describe("collections integration", () => {
     dynamicSubExpressionId = res.data!.id;
   });
 
+  it("reads the static collection by id", async () => {
+    const res = await aprimo.collections.getById(staticId);
+    expectOk(res);
+    expect(res.data?.id).toBe(staticId);
+  });
+
   it("fetches collections", async () => {
     const res = await aprimo.collections.get({ pageSize: 5 });
     expectOk(res);
