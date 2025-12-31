@@ -43,8 +43,13 @@ export const classifications = (client: HttpClient) => ({
   get: async (
     params?: QueryParams,
     expander?: Expander,
+    languages?: "*" | string[],
   ): Promise<ApiResult<PagedCollection<Classification>>> => {
     const headers = buildHeaders(params, expander);
+
+    if (languages) {
+      headers["languages"] = languages === "*" ? "*" : languages.join(",");
+    }
 
     return client.get("/api/core/classifications", headers);
   },
@@ -52,8 +57,13 @@ export const classifications = (client: HttpClient) => ({
   getById: async (
     id: string,
     expander?: Expander,
+    languages?: "*" | string[],
   ): Promise<ApiResult<Classification>> => {
     const headers = buildHeaders(undefined, expander);
+
+    if (languages) {
+      headers["languages"] = languages === "*" ? "*" : languages.join(",");
+    }
 
     return client.get(`/api/core/classification/${id}`, headers);
   },
@@ -61,6 +71,7 @@ export const classifications = (client: HttpClient) => ({
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
+    languages?: "*" | string[],
   ): AsyncGenerator<ApiResult<PagedCollection<Classification>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;
@@ -69,6 +80,7 @@ export const classifications = (client: HttpClient) => ({
       const result = await this.get(
         { ...params, page: currentPage, pageSize },
         expander,
+        languages,
       );
 
       yield result;

@@ -58,6 +58,29 @@ describe("classifications integration", () => {
     expectOk(res);
   });
 
+  it("updates multilingual labels", async () => {
+    const languageId = "c2bd4f9bbb954bcb80c31e924c9c26dc";
+
+    const updateRes = await aprimo.classifications.update(id, {
+      labels: [
+        {
+          languageId,
+          value: "Updated Classification Label",
+        },
+      ],
+    });
+
+    expectOk(updateRes);
+
+    const getRes = await aprimo.classifications.getById(id, undefined, "*");
+    expectOk(getRes);
+
+    const updatedLabel = getRes.data?.labels?.find(
+      (l) => l.languageId === languageId,
+    );
+    expect(updatedLabel?.value).toBe("Updated Classification Label");
+  });
+
   it("fetches a list of classifications", async () => {
     const res = await aprimo.classifications.get({ pageSize: 5 });
     expectOk(res);

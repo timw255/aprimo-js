@@ -70,6 +70,29 @@ describe("fieldDefinitions integration", () => {
     expectOk(res);
   });
 
+  it("updates multilingual labels", async () => {
+    const languageId = "c2bd4f9bbb954bcb80c31e924c9c26dc";
+
+    const updateRes = await aprimo.fieldDefinitions.update(id, {
+      labels: [
+        {
+          languageId,
+          value: "Updated Label",
+        },
+      ],
+    });
+
+    expectOk(updateRes);
+
+    const getRes = await aprimo.fieldDefinitions.getById(id, undefined, "*");
+    expectOk(getRes);
+
+    const updatedLabel = getRes.data?.labels?.find(
+      (l) => l.languageId === languageId,
+    );
+    expect(updatedLabel?.value).toBe("Updated Label");
+  });
+
   it("lists field definitions", async () => {
     const res = await aprimo.fieldDefinitions.get({ pageSize: 5 });
     expectOk(res);
