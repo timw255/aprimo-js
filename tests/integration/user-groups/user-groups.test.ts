@@ -54,6 +54,44 @@ describe("user groups integration", () => {
     expect(count).toBeGreaterThan(0);
   });
 
+  it("gets permissions for a user group", async () => {
+    const res = await aprimo.userGroups.getPermissions(userGroupId);
+    expectOk(res);
+    expect(res.data?.items).toBeDefined();
+  });
+
+  it("updates permissions for a user group", async () => {
+    // First get current permissions to find a valid permission name
+    const permsRes = await aprimo.userGroups.getPermissions(userGroupId);
+    expectOk(permsRes);
+
+    const permissionName = permsRes.data?.items?.[0]?.name;
+    expect(permissionName).toBeDefined();
+
+    // Update a permission
+    const updateRes = await aprimo.userGroups.updatePermissions(userGroupId, {
+      permissions: {
+        addOrUpdate: [
+          {
+            name: permissionName!,
+            value: "granted",
+          },
+        ],
+      },
+    });
+
+    expectOk(updateRes);
+
+    // Verify the permission was updated
+    const verifyRes = await aprimo.userGroups.getPermissions(userGroupId);
+    expectOk(verifyRes);
+
+    const updatedPerm = verifyRes.data?.items?.find(
+      (p) => p.name === permissionName,
+    );
+    expect(updatedPerm?.value?.toLowerCase()).toBe("granted");
+  });
+
   it("deletes the user group", async () => {
     const res = await aprimo.userGroups.delete(userGroupId);
     expectOk(res);

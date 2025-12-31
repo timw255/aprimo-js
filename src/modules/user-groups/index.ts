@@ -3,7 +3,18 @@ import { QueryParams } from "../../model/QueryParams";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
+import { PermissionValueCollection } from "../../model/PermissionValueCollection";
+import { SetActions } from "../../model/SetActions";
 import { buildHeaders } from "../../utils";
+
+export interface PermissionUpdate {
+  name: string;
+  value: "granted" | "denied" | "notset";
+}
+
+export interface UpdatePermissionsRequest {
+  permissions: SetActions<PermissionUpdate>;
+}
 
 export interface CreateUserGroupRequest {
   name: string;
@@ -66,5 +77,18 @@ export const userGroups = (client: HttpClient) => ({
 
   delete: async (userGroupId: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/usergroup/${userGroupId}`);
+  },
+
+  getPermissions: async (
+    userGroupId: string,
+  ): Promise<ApiResult<PermissionValueCollection>> => {
+    return client.get(`/api/core/usergroup/${userGroupId}/permissions`);
+  },
+
+  updatePermissions: async (
+    userGroupId: string,
+    request: UpdatePermissionsRequest,
+  ): Promise<ApiResult<void>> => {
+    return client.put(`/api/core/usergroup/${userGroupId}/permissions`, request);
   },
 });

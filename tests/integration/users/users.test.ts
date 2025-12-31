@@ -45,6 +45,44 @@ describe("users integration", () => {
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
+  it("gets permissions for a user", async () => {
+    const res = await aprimo.users.getPermissions(userId);
+    expectOk(res);
+    expect(res.data?.items).toBeDefined();
+  });
+
+  it("updates permissions for a user", async () => {
+    // First get current permissions to find a valid permission name
+    const permsRes = await aprimo.users.getPermissions(userId);
+    expectOk(permsRes);
+
+    const permissionName = permsRes.data?.items?.[0]?.name;
+    expect(permissionName).toBeDefined();
+
+    // Update a permission
+    const updateRes = await aprimo.users.updatePermissions(userId, {
+      permissions: {
+        addOrUpdate: [
+          {
+            name: permissionName!,
+            value: "granted",
+          },
+        ],
+      },
+    });
+
+    expectOk(updateRes);
+
+    // Verify the permission was updated
+    const verifyRes = await aprimo.users.getPermissions(userId);
+    expectOk(verifyRes);
+
+    const updatedPerm = verifyRes.data?.items?.find(
+      (p) => p.name === permissionName,
+    );
+    expect(updatedPerm?.value?.toLowerCase()).toBe("granted");
+  });
+
   it("deletes the user", async () => {
     const res = await aprimo.users.delete(userId);
     expectOk(res);
