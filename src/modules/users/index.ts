@@ -38,6 +38,23 @@ export const users = (client: HttpClient) => ({
     return await client.get("/api/core/users", headers);
   },
 
+  getPaged: async function* (
+    params: QueryParams = {},
+  ): AsyncGenerator<ApiResult<PagedCollection<User>>, void, unknown> {
+    let currentPage = params.page ?? 1;
+    const pageSize = params.pageSize ?? 100;
+
+    while (true) {
+      const result = await this.get({ ...params, page: currentPage, pageSize });
+
+      yield result;
+
+      if (!result.ok || !result.data?._links?.next) break;
+
+      currentPage++;
+    }
+  },
+
   getById: async (id: string): Promise<ApiResult<User>> => {
     return client.get(`/api/core/user/${id}`);
   },

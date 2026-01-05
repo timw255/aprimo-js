@@ -45,6 +45,18 @@ describe("users integration", () => {
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
+  it("fetches users paged", async () => {
+    let count = 0;
+
+    for await (const page of aprimo.users.getPaged({ pageSize: 2 })) {
+      expectOk(page);
+      count += page.data?.items?.length ?? 0;
+      if (count >= 5) break;
+    }
+
+    expect(count).toBeGreaterThan(0);
+  });
+
   it("gets permissions for a user", async () => {
     const res = await aprimo.users.getPermissions(userId);
     expectOk(res);
