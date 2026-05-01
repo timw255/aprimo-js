@@ -12,7 +12,6 @@ describe("contentSelector", () => {
   beforeEach(() => {
     vi.resetAllMocks();
 
-    // mock window APIs
     (globalThis as any).window = {
       open: mockOpen,
       addEventListener: mockAddEventListener,

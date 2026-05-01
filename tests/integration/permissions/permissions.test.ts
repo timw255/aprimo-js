@@ -16,4 +16,16 @@ describe("permissions integration", () => {
     expectOk(res);
     expect(res.data?.items?.length).toBeGreaterThanOrEqual(0);
   });
+
+  it("gets the calculated value of a permission", async () => {
+    const listRes = await aprimo.permissions.get({ pageSize: 1 });
+    expectOk(listRes);
+    const permissionName = listRes.data?.items?.[0]?.name;
+    expect(permissionName).toBeDefined();
+
+    const res = await aprimo.permissions.getCalculated(permissionName!);
+    expectOk(res);
+    expect(res.data?.name).toBeDefined();
+    expect(res.data?.value).toBeDefined();
+  });
 });

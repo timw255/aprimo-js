@@ -2,26 +2,42 @@ const fs = require("fs");
 const path = require("path");
 
 const MODEL_DIR = path.resolve(__dirname, "../src/model");
-const OUTPUT = path.join(MODEL_DIR, "index.ts");
 
-function generate() {
-  const files = fs.readdirSync(MODEL_DIR)
-    .filter(f => f.endsWith(".ts") && f !== "index.ts");
+const BANNER = `/* istanbul ignore file */
 
-  const exports = files.map(file => {
-    const name = path.basename(file, ".ts");
-    return `export * from "./${name}";`;
-  });
-
-  const banner = `/**
+/**
  * AUTO-GENERATED — DO NOT EDIT
  * Run \`npm run generate:model-barrel\` to regenerate
  */`;
 
-  const content = [banner, "", ...exports].join("\n");
+function generateBarrelForDir(dir) {
+  if (!fs.existsSync(dir)) return;
 
-  fs.writeFileSync(OUTPUT, content, "utf8");
-  console.log(`Barrel file written to: ${OUTPUT}`);
+  const exports = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter(
+      (e) =>
+        e.isFile() && e.name.endsWith(".ts") && e.name !== "index.ts",
+    )
+    .map((e) => `export * from "./${path.basename(e.name, ".ts")}";`);
+
+  const content = [BANNER, "", ...exports].join("\n") + "\n";
+  const output = path.join(dir, "index.ts");
+  fs.writeFileSync(output, content, "utf8");
+  console.log(`Barrel file written to: ${output}`);
+}
+
+function generate() {
+  generateBarrelForDir(MODEL_DIR);
+
+  const subdirs = fs
+    .readdirSync(MODEL_DIR, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => path.join(MODEL_DIR, e.name));
+
+  for (const sub of subdirs) {
+    generateBarrelForDir(sub);
+  }
 }
 
 generate();

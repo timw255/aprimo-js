@@ -25,7 +25,7 @@ export const uploader = (client: HttpClient) => ({
     file: File,
     options: UploadOptions = {},
   ): Promise<ApiResult<UploadTokenResponse>> => {
-    const segmentSize = 20 * 1024 * 1024; // 20MB
+    const segmentSize = 20 * 1024 * 1024;
     const hasCustomOptions = Object.keys(options).length > 0;
     const shouldUseLargeUpload = file.size > segmentSize || hasCustomOptions;
 

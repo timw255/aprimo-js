@@ -1,5 +1,55 @@
 import axios, { AxiosError } from "axios";
 
+const FALLBACK_TOKEN_TTL_MS = 9 * 60 * 1000;
+const TOKEN_REFRESH_SKEW_MS = 30 * 1000;
+
+export function getTokenExpiryMs(token: string): number {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return Date.now() + FALLBACK_TOKEN_TTL_MS;
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(
+      normalized.length + ((4 - (normalized.length % 4)) % 4),
+      "=",
+    );
+    const json =
+      typeof Buffer !== "undefined"
+        ? Buffer.from(padded, "base64").toString("utf8")
+        : atob(padded);
+    const claims = JSON.parse(json) as { exp?: number };
+    if (typeof claims.exp === "number") {
+      return claims.exp * 1000;
+    }
+  } catch { }
+  return Date.now() + FALLBACK_TOKEN_TTL_MS;
+}
+
+export function cacheTokenProvider(
+  fetchToken: () => Promise<string>,
+): () => Promise<string> {
+  let cachedToken: string | null = null;
+  let cachedExpiryMs = 0;
+  let inflight: Promise<string> | null = null;
+
+  return async () => {
+    if (cachedToken && Date.now() < cachedExpiryMs - TOKEN_REFRESH_SKEW_MS) {
+      return cachedToken;
+    }
+    if (inflight) return inflight;
+    inflight = (async () => {
+      try {
+        const token = await fetchToken();
+        cachedToken = token;
+        cachedExpiryMs = getTokenExpiryMs(token);
+        return token;
+      } finally {
+        inflight = null;
+      }
+    })();
+    return inflight;
+  };
+}
+
 export async function getClientCredentialsToken(
   environment: string,
   clientId: string,

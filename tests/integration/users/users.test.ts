@@ -64,14 +64,12 @@ describe("users integration", () => {
   });
 
   it("updates permissions for a user", async () => {
-    // First get current permissions to find a valid permission name
     const permsRes = await aprimo.users.getPermissions(userId);
     expectOk(permsRes);
 
     const permissionName = permsRes.data?.items?.[0]?.name;
     expect(permissionName).toBeDefined();
 
-    // Update a permission
     const updateRes = await aprimo.users.updatePermissions(userId, {
       permissions: {
         addOrUpdate: [
@@ -85,7 +83,6 @@ describe("users integration", () => {
 
     expectOk(updateRes);
 
-    // Verify the permission was updated
     const verifyRes = await aprimo.users.getPermissions(userId);
     expectOk(verifyRes);
 

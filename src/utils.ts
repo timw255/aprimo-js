@@ -26,6 +26,19 @@ export function queryParamsToHeaders(
   return headers;
 }
 
+export function buildQueryString(params?: Record<string, unknown>): string {
+  if (!params) return "";
+
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null) {
+      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+    }
+  }
+
+  return parts.length > 0 ? `?${parts.join("&")}` : "";
+}
+
 export function computeSetActions<T>(
   newItems: T[],
   previousItems: T[],

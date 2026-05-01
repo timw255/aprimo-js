@@ -1,6 +1,11 @@
 import { QueryParams } from "../../model/QueryParams";
 import { buildHeaders } from "../../utils";
 import { Classification } from "../../model/Classification";
+import { ClassificationDownloadPermissions } from "../../model/ClassificationDownloadPermissions";
+import { ClassificationPermissions } from "../../model/ClassificationPermissions";
+import { ClassificationUserGroupDownloadPermission } from "../../model/ClassificationUserGroupDownloadPermission";
+import { ClassificationUserGroupPermission } from "../../model/ClassificationUserGroupPermission";
+import { ClassificationUserPermissions } from "../../model/ClassificationUserPermissions";
 import { SetActions } from "../../model/SetActions";
 import { Label } from "../../model/Label";
 import { ApiResult } from "../../client";
@@ -37,6 +42,16 @@ export type UpdateClassificationRequest = Partial<
 
 export interface CreateClassificationResponse {
   id: string;
+}
+
+export interface UpdateClassificationPermissionsRequest {
+  breakInheritance: boolean;
+  permissions: SetActions<ClassificationUserGroupPermission>;
+}
+
+export interface UpdateClassificationDownloadPermissionsRequest {
+  breakInheritance: boolean;
+  permissions: SetActions<ClassificationUserGroupDownloadPermission>;
 }
 
 export const classifications = (client: HttpClient) => ({
@@ -123,5 +138,41 @@ export const classifications = (client: HttpClient) => ({
       : undefined;
 
     return client.delete(`/api/core/classification/${id}`, headers);
+  },
+
+  getTreePermission: async (
+    id: string,
+  ): Promise<ApiResult<ClassificationUserPermissions>> => {
+    return client.get(`/api/core/classification/${id}/classificationtreepermission`);
+  },
+
+  updateTreePermissions: async (
+    id: string,
+    request: UpdateClassificationPermissionsRequest,
+  ): Promise<ApiResult<ClassificationPermissions>> => {
+    return client.put(
+      `/api/core/classification/${id}/classificationtreepermissions`,
+      request,
+    );
+  },
+
+  updateRecordPermissions: async (
+    id: string,
+    request: UpdateClassificationPermissionsRequest,
+  ): Promise<ApiResult<ClassificationPermissions>> => {
+    return client.put(
+      `/api/core/classification/${id}/recordpermissions`,
+      request,
+    );
+  },
+
+  updateDownloadPermissions: async (
+    id: string,
+    request: UpdateClassificationDownloadPermissionsRequest,
+  ): Promise<ApiResult<ClassificationDownloadPermissions>> => {
+    return client.put(
+      `/api/core/classification/${id}/downloadpermissions`,
+      request,
+    );
   },
 });

@@ -61,14 +61,12 @@ describe("user groups integration", () => {
   });
 
   it("updates permissions for a user group", async () => {
-    // First get current permissions to find a valid permission name
     const permsRes = await aprimo.userGroups.getPermissions(userGroupId);
     expectOk(permsRes);
 
     const permissionName = permsRes.data?.items?.[0]?.name;
     expect(permissionName).toBeDefined();
 
-    // Update a permission
     const updateRes = await aprimo.userGroups.updatePermissions(userGroupId, {
       permissions: {
         addOrUpdate: [
@@ -82,7 +80,6 @@ describe("user groups integration", () => {
 
     expectOk(updateRes);
 
-    // Verify the permission was updated
     const verifyRes = await aprimo.userGroups.getPermissions(userGroupId);
     expectOk(verifyRes);
 

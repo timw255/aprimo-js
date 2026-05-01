@@ -18,7 +18,7 @@ describe("rules integration", () => {
       expression: "",
       includeDraftRecords: false,
       isInternal: false,
-      name: "Integration Rule",
+      name: `Integration Rule ${Date.now()}`,
       tag: "",
       target: "Record",
       trigger: "WhenSavedOrDeleted",

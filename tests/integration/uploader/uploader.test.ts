@@ -4,7 +4,6 @@ import { expectOk } from "../../utils";
 import type { ApiResult } from "../../../src/client";
 import type { UploadSegmentSetupResponse } from "../../../src/modules/uploader";
 
-// Simulate a file object in Node for test purposes
 function createMockFile(name: string, size: number): File {
   const blob = new Blob([new Uint8Array(size).fill(1)], {
     type: "application/octet-stream",
@@ -21,14 +20,14 @@ const aprimo = createClient({
 
 describe("uploader integration", () => {
   it("uploads a small file", async () => {
-    const file = createMockFile("smallfile.txt", 5 * 1024 * 1024); // 5MB
+    const file = createMockFile("smallfile.txt", 5 * 1024 * 1024);
     const res = await aprimo.uploader.uploadFile(file);
     expectOk(res);
     expect(res.data?.token).toBeTruthy();
   });
 
   it("uploads a large file in segments", async () => {
-    const file = createMockFile("largefile.txt", 25 * 1024 * 1024); // 25MB
+    const file = createMockFile("largefile.txt", 25 * 1024 * 1024);
     const res = await aprimo.uploader.uploadFile(file);
     expectOk(res);
     expect(res.data?.token).toBeTruthy();
@@ -117,7 +116,7 @@ describe("uploader integration", () => {
   it("aborts immediately if signal is already aborted", async () => {
     const file = createMockFile("preaborted.txt", 25 * 1024 * 1024);
     const controller = new AbortController();
-    controller.abort(); // Abort before calling upload
+    controller.abort();
 
     const res = await aprimo.uploader.uploadFile(file, {
       signal: controller.signal,

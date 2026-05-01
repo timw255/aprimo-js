@@ -30,7 +30,7 @@ describe("fieldGroups integration", () => {
 
   it("updates the field group", async () => {
     const res = await aprimo.fieldGroups.update(id, {
-      name: "Updated Integration Group",
+      name: `Updated Integration Group ${Date.now()}`,
     });
 
     expectOk(res);

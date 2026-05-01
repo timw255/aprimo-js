@@ -4,21 +4,18 @@ import { Setting, SettingScope } from "../../model/Setting";
 import { SettingCollection } from "../../model/SettingCollection";
 
 export const settings = (client: HttpClient) => {
-  // Overload for single setting
   function getByName(
     name: string,
     scope?: SettingScope,
     scopeId?: string,
   ): Promise<ApiResult<Setting>>;
 
-  // Overload for multiple settings
   function getByName(
     names: string[],
     scope?: SettingScope,
     scopeId?: string,
   ): Promise<ApiResult<SettingCollection>>;
 
-  // Implementation
   async function getByName(
     names: string | string[],
     scope?: SettingScope,
@@ -49,7 +46,6 @@ export const settings = (client: HttpClient) => {
     >;
   }
 
-  // Return API
   return {
     getByName,
 

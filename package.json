@@ -1,6 +1,6 @@
 {
   "name": "aprimo-js",
-  "version": "1.0.10-alpha.0",
+  "version": "2.0.0-alpha.0",
   "description": "A JavaScript SDK for interacting with Aprimo REST APIs",
   "license": "MIT",
   "repository": {
@@ -31,12 +31,20 @@
       "types": "./dist/model/index.d.ts",
       "import": "./dist/model/index.js",
       "require": "./dist/model/index.js"
+    },
+    "./model/productivity": {
+      "types": "./dist/model/productivity/index.d.ts",
+      "import": "./dist/model/productivity/index.js",
+      "require": "./dist/model/productivity/index.js"
     }
   },
   "typesVersions": {
     "*": {
       "model": [
         "dist/model/index.d.ts"
+      ],
+      "model/productivity": [
+        "dist/model/productivity/index.d.ts"
       ]
     }
   },

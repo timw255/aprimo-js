@@ -42,20 +42,18 @@ describe("settings integration", () => {
       aprimo.settings.update({
         name: TEST_SETTING,
         value: "SomeValue",
-        scope: "site", // missing scopeId
+        scope: "site",
       }),
     ).rejects.toThrow("scopeId is required when scope is 'site'");
   });
 
   it("updates a setting with its current value", async () => {
-    // Get current system-scoped setting value
     const getRes = await aprimo.settings.getByName(TEST_SETTING, "system");
     expectOk(getRes);
 
     const currentValue = getRes.data?.value as string;
     expect(currentValue).toBeDefined();
 
-    // Re-apply the same value
     const updateRes = await aprimo.settings.update({
       name: TEST_SETTING,
       value: currentValue,

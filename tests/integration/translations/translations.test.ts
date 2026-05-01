@@ -11,12 +11,13 @@ const aprimo = createClient({
 
 describe("translations integration", () => {
   let id: string;
+  const stamp = Date.now().toString(36);
 
   it("creates a translation", async () => {
     const res = await aprimo.translations.create({
       studio: "Providers",
       module: ".RegisteredMaintenanceActions",
-      name: "TutorialTranslation",
+      name: `TutorialTranslation_${stamp}`,
     });
 
     expectOk(res);
@@ -58,7 +59,7 @@ describe("translations integration", () => {
     }
 
     const res = await aprimo.translations.update(id, {
-      name: "TutorialTranslationUpdated",
+      name: `TutorialTranslationUpdated_${stamp}`,
     });
 
     expectOk(res);

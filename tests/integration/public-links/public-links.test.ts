@@ -13,13 +13,13 @@ const aprimo = createClient({
   clientSecret: process.env.APRIMO_CLIENT_SECRET!,
 });
 
+const provider = process.env.TEST_PUBLIC_LINK_PROVIDER!;
+const recordId = process.env.TEST_RECORD_ID!;
+
 describe("public links integration", () => {
-  let recordId: string;
   let publicLinkId: string;
 
   it("creates a public link", async () => {
-    recordId = process.env.TEST_RECORD_ID!;
-
     const expander = Expander.create()
       .for<Record>("Record")
       .expand("masterfile")
@@ -42,7 +42,7 @@ describe("public links integration", () => {
       renditionName: "HD 720p",
       recordId: recordId,
       uri: `https://p1.aprimocdn.net/${process.env.APRIMO_ENVIRONMENT!}/${recordId}/${encodeURIComponent(recordId)}${encodeURIComponent("_HD 720p")}.jpg`,
-      provider: "FastlyCDN",
+      provider,
     });
 
     expectOk(res);

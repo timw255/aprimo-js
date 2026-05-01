@@ -1,5 +1,9 @@
 import { Aprimo } from "./client";
-import { getClientCredentialsToken, getPasswordToken } from "./auth";
+import {
+  cacheTokenProvider,
+  getClientCredentialsToken,
+  getPasswordToken,
+} from "./auth";
 
 export type AuthStrategy =
   | { type: "client_credentials"; clientId: string; clientSecret: string }
@@ -23,12 +27,14 @@ export function createClient(options: CreateClientOptions): Aprimo {
 
   if (options.type === "client_credentials") {
     const { clientId, clientSecret } = options;
-    tokenProvider = () =>
-      getClientCredentialsToken(environment, clientId, clientSecret);
+    tokenProvider = cacheTokenProvider(() =>
+      getClientCredentialsToken(environment, clientId, clientSecret),
+    );
   } else if (options.type === "password") {
     const { clientId, clientSecret, username, password } = options;
-    tokenProvider = () =>
-      getPasswordToken(environment, clientId, clientSecret, username, password);
+    tokenProvider = cacheTokenProvider(() =>
+      getPasswordToken(environment, clientId, clientSecret, username, password),
+    );
   } else if (options.type === "custom") {
     tokenProvider = options.tokenProvider;
   } else {

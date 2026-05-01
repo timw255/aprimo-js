@@ -1,4 +1,5 @@
 import { ApiResult } from "../../client";
+import { CalculatedPermission } from "../../model/CalculatedPermission";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
 import { Permission } from "../../model/Permission";
@@ -12,5 +13,11 @@ export const permissions = (client: HttpClient) => ({
     const headers = buildHeaders(params);
 
     return await client.get("/api/core/permissions", headers);
+  },
+
+  getCalculated: async (
+    permissionName: string,
+  ): Promise<ApiResult<CalculatedPermission>> => {
+    return client.get(`/api/core/calculatedpermission/${permissionName}`);
   },
 });

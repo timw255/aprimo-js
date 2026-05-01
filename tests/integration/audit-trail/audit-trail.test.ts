@@ -9,13 +9,12 @@ const aprimo = createClient({
   clientSecret: process.env.APRIMO_CLIENT_SECRET!,
 });
 
+const recordId = process.env.TEST_RECORD_ID!;
+
 describe("auditTrail integration", () => {
-  let recordId: string;
   let auditEntryId: number;
 
   it("gets audit entries for a record", async () => {
-    recordId = process.env.TEST_RECORD_ID!;
-
     const auditRes = await aprimo.auditTrail.getforRecord(recordId);
     expectOk(auditRes);
     expect(auditRes.data?.entries?.length).toBeGreaterThan(0);

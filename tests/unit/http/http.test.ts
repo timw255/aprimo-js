@@ -19,7 +19,6 @@ beforeEach(() => {
   });
 });
 
-// Helper to create a proper AxiosError with a mock response
 function createAxiosError(): AxiosError {
   const error = new AxiosError("fail") as AxiosError;
 
@@ -103,8 +102,8 @@ describe("HttpClient", () => {
 
     mockedAxios.request = vi
       .fn()
-      .mockRejectedValueOnce(err429) // First attempt fails
-      .mockResolvedValueOnce({ status: 200, data: { success: true } }); // Second succeeds
+      .mockRejectedValueOnce(err429)
+      .mockResolvedValueOnce({ status: 200, data: { success: true } });
 
     const retryHandler = vi.fn().mockResolvedValue(true);
 

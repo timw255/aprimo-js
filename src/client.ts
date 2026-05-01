@@ -1,4 +1,6 @@
+import { additionalFiles } from "./modules/additional-files";
 import { records } from "./modules/records";
+import { checks } from "./modules/checks";
 import { collections } from "./modules/collections";
 import { fieldDefinitions } from "./modules/field-definitions";
 import { classifications } from "./modules/classifications";
@@ -8,6 +10,7 @@ import { users } from "./modules/users";
 import { userGroups } from "./modules/user-groups";
 import { fieldGroups } from "./modules/field-groups";
 import { fileTypes } from "./modules/file-types";
+import { fileVersions } from "./modules/file-versions";
 import { settingCategories } from "./modules/setting-categories";
 import { settingDefinitions } from "./modules/setting-definitions";
 import { search } from "./modules/search";
@@ -24,6 +27,7 @@ import { publicLinks } from "./modules/public-links";
 import { recordLocks } from "./modules/record-locks";
 import { files } from "./modules/files";
 import { languages } from "./modules/languages";
+import { productivity } from "./modules/productivity";
 
 export type ApiResult<T> = {
   ok: boolean;
@@ -39,11 +43,14 @@ export type ApiResult<T> = {
 export class Aprimo {
   private readonly damHttp: HttpClient;
   private readonly moHttp: HttpClient;
+  private readonly pmHttp: HttpClient;
   private readonly environment: string;
   private readonly damUrl: string;
   private readonly moUrl: string;
 
+  public additionalFiles: ReturnType<typeof additionalFiles>;
   public auditTrail: ReturnType<typeof auditTrail>;
+  public checks: ReturnType<typeof checks>;
   public classifications: ReturnType<typeof classifications>;
   public collections: ReturnType<typeof collections>;
   public contentTypes: ReturnType<typeof contentTypes>;
@@ -52,6 +59,7 @@ export class Aprimo {
   public fieldGroups: ReturnType<typeof fieldGroups>;
   public files: ReturnType<typeof files>;
   public fileTypes: ReturnType<typeof fileTypes>;
+  public fileVersions: ReturnType<typeof fileVersions>;
   public languages: ReturnType<typeof languages>;
   public maintenanceJobs: ReturnType<typeof maintenanceJobs>;
   public orders: ReturnType<typeof orders>;
@@ -68,6 +76,8 @@ export class Aprimo {
   public uploader: ReturnType<typeof uploader>;
   public users: ReturnType<typeof users>;
   public userGroups: ReturnType<typeof userGroups>;
+
+  public productivity: ReturnType<typeof productivity>;
 
   /**
    * @internal
@@ -88,7 +98,13 @@ export class Aprimo {
       Accept: "application/hal+json",
     });
 
+    this.pmHttp = new HttpClient(tokenProvider, this.moUrl, {
+      Accept: "application/json",
+    });
+
+    this.additionalFiles = additionalFiles(this.damHttp);
     this.auditTrail = auditTrail(this.damHttp);
+    this.checks = checks(this.damHttp);
     this.classifications = classifications(this.damHttp);
     this.collections = collections(this.damHttp);
     this.contentTypes = contentTypes(this.damHttp);
@@ -97,6 +113,7 @@ export class Aprimo {
     this.fieldGroups = fieldGroups(this.damHttp);
     this.files = files(this.damHttp);
     this.fileTypes = fileTypes(this.damHttp);
+    this.fileVersions = fileVersions(this.damHttp);
     this.languages = languages(this.damHttp);
     this.maintenanceJobs = maintenanceJobs(this.damHttp);
     this.orders = orders(this.damHttp);
@@ -113,5 +130,7 @@ export class Aprimo {
     this.uploader = uploader(this.moHttp);
     this.users = users(this.damHttp);
     this.userGroups = userGroups(this.damHttp);
+
+    this.productivity = productivity(this.pmHttp);
   }
 }

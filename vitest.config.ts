@@ -6,6 +6,16 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/integration/**/*.test.ts', 'tests/unit/**/*.test.ts'],
     testTimeout: 15000,
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
+    fileParallelism: false,
+    sequence: {
+      concurrent: false,
+    },
     coverage: {
       provider: "v8",
       include: [
