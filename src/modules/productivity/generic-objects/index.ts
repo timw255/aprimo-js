@@ -6,6 +6,7 @@ import {
 } from "../../../model/productivity/GenericObject";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateGenericObjectRequest {
@@ -30,11 +31,7 @@ export interface UpdateGenericObjectRequest {
   multipleValueExtendedAttributes?: unknown[];
 }
 
-export interface GenericObjectSearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  contains?: { fieldName: string; fieldValue: string };
-  [key: string]: unknown;
-}
+export type GenericObjectSearchRequest = PmSearchRequest;
 
 const path = (type: GenericObjectType) => `/api/generic-object-${type}`;
 

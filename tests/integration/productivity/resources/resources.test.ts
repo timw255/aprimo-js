@@ -31,4 +31,13 @@ describe("productivity resources integration", () => {
     logShape("resources.getById", res.data);
     expect(res.data?.id).toBeDefined();
   });
+
+  it("queries multiple resources by id", async () => {
+    const res = await aprimo.productivity.resources.query({
+      query: resourceId,
+    });
+    expectOk(res);
+    logShape("resources.query", res.data);
+    expect(res.data?.resources).toBeDefined();
+  });
 });

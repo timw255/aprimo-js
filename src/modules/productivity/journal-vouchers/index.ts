@@ -6,6 +6,7 @@ import {
 } from "../../../model/productivity/JournalVoucher";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateJournalVoucherRequest {
@@ -32,10 +33,7 @@ export type UpdateJournalVoucherRequest = Partial<CreateJournalVoucherRequest> &
   baseTotalJv?: number;
 };
 
-export interface JournalVoucherSearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  [key: string]: unknown;
-}
+export type JournalVoucherSearchRequest = PmSearchRequest;
 
 export const journalVouchers = (client: HttpClient) => ({
   get: async (

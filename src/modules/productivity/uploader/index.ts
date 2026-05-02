@@ -19,20 +19,28 @@ export interface ChunkUploadOptions {
   identifier?: string;
   onProgress?: (uploaded: number, total: number) => void;
   signal?: AbortSignal;
+  attachment?: boolean;
 }
+
+const uploadPath = (forAttachment: boolean) =>
+  forAttachment ? "/api/chunk/upload/attachment" : "/api/chunk/upload";
+const completePath = (forAttachment: boolean) =>
+  forAttachment ? "/api/chunk/complete/attachment" : "/api/chunk/complete";
 
 export const uploader = (client: HttpClient) => ({
   checkChunk: async (
     params: ChunkUploadCheckParams,
+    options: { attachment?: boolean } = {},
   ): Promise<ApiResult<unknown>> => {
     return client.get(
-      `/api/chunk/upload${buildQueryString({ ...params })}`,
+      `${uploadPath(options.attachment ?? false)}${buildQueryString({ ...params })}`,
     );
   },
 
   uploadChunk: async (
     chunk: Blob,
     params: ChunkUploadCheckParams,
+    options: { attachment?: boolean } = {},
   ): Promise<ApiResult<unknown>> => {
     const formData = new FormData();
     formData.append("resumableFilename", params.resumableFilename);
@@ -42,13 +50,14 @@ export const uploader = (client: HttpClient) => ({
     );
     formData.append("resumableIdentifier", params.resumableIdentifier);
     formData.append("file", chunk, params.resumableFilename);
-    return client.post("/api/chunk/upload", formData);
+    return client.post(uploadPath(options.attachment ?? false), formData);
   },
 
   complete: async (
     request: ChunkUploadCompleteRequest,
+    options: { attachment?: boolean } = {},
   ): Promise<ApiResult<unknown>> => {
-    return client.post("/api/chunk/complete", request);
+    return client.post(completePath(options.attachment ?? false), request);
   },
 
   uploadFile: async (
@@ -60,6 +69,7 @@ export const uploader = (client: HttpClient) => ({
     const chunkCount = Math.ceil(file.size / chunkSize);
     const concurrency = options.parallelLimit ?? 1;
     const uploaded = new Set<number>();
+    const forAttachment = options.attachment ?? false;
     let nextIndex = 0;
     let cancelled = false;
     const signal = options.signal;
@@ -95,7 +105,7 @@ export const uploader = (client: HttpClient) => ({
           const slice = file.slice(start, end);
 
           const res = await client.post(
-            `/api/chunk/upload`,
+            uploadPath(forAttachment),
             (() => {
               const fd = new FormData();
               fd.append("resumableFilename", file.name);
@@ -127,7 +137,7 @@ export const uploader = (client: HttpClient) => ({
 
           if (uploaded.size === chunkCount) {
             const completeRes = await client.post<unknown>(
-              "/api/chunk/complete",
+              completePath(forAttachment),
               { FileId: identifier, FileName: file.name },
             );
             signal?.removeEventListener("abort", onAbort);

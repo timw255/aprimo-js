@@ -3,6 +3,7 @@ import { HttpClient } from "../../../http";
 import { Treatment } from "../../../model/productivity/Treatment";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface UpdateTreatmentRequest {
@@ -20,10 +21,7 @@ export interface UpdateTreatmentRequest {
   multipleValueExtendedAttributes?: unknown[];
 }
 
-export interface TreatmentSearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  [key: string]: unknown;
-}
+export type TreatmentSearchRequest = PmSearchRequest;
 
 export const treatments = (client: HttpClient) => ({
   getById: async (id: number | string): Promise<ApiResult<Treatment>> => {

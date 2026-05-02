@@ -7,6 +7,7 @@ export interface Fda2253AdvertisementMaterial {
 
 export interface Fda2253Submission {
   DateSubmitted: string;
+  LabelReviewNumber?: string;
   Type?: string;
   Number?: string;
   SingleProductOrMultiple?: boolean;
@@ -16,7 +17,9 @@ export interface Fda2253Submission {
   ProfessionalOrConsumer?: boolean;
   PackageInsertDateAndIdNumber?: string;
   ManufacturerName?: string;
+  LicenseNoBiologics?: number;
   AdvertisementMaterials?: Fda2253AdvertisementMaterial[];
+  Comments?: string;
   Address1?: string;
   Address2?: string;
   City?: string;
@@ -28,4 +31,5 @@ export interface Fda2253Submission {
   Email?: string;
   TypedNameOfAgent?: string;
   DateSigned?: string;
+  DraftOrFinalForCberProductsOnly?: boolean;
 }

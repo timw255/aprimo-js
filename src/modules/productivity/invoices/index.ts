@@ -3,6 +3,7 @@ import { HttpClient } from "../../../http";
 import { Invoice, InvoiceItem } from "../../../model/productivity/Invoice";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateInvoiceRequest {
@@ -35,10 +36,7 @@ export type UpdateInvoiceRequest = Partial<CreateInvoiceRequest> & {
   reviewedDate?: string;
 };
 
-export interface InvoiceSearchRequest {
-  equals?: { fieldname: string; fieldvalue: string | number | boolean };
-  [key: string]: unknown;
-}
+export type InvoiceSearchRequest = PmSearchRequest;
 
 export const invoices = (client: HttpClient) => ({
   get: async (

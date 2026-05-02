@@ -6,6 +6,7 @@ import {
 } from "../../../model/productivity/Commitment";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateCommitmentRequest {
@@ -36,10 +37,7 @@ export interface CreateCommitmentRequest {
 
 export type UpdateCommitmentRequest = Partial<CreateCommitmentRequest>;
 
-export interface CommitmentSearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  [key: string]: unknown;
-}
+export type CommitmentSearchRequest = PmSearchRequest;
 
 export const commitments = (client: HttpClient) => ({
   get: async (

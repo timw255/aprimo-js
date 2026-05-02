@@ -4,6 +4,7 @@ import { Activity } from "../../../model/productivity/Activity";
 import { ActivityMilestone } from "../../../model/productivity/ActivityMilestone";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateActivityRequest {
@@ -34,10 +35,7 @@ export interface CreateActivityMilestoneRequest {
   milestoneEaId?: number;
 }
 
-export interface ActivitySearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  [key: string]: unknown;
-}
+export type ActivitySearchRequest = PmSearchRequest;
 
 export const activities = (client: HttpClient) => ({
   get: async (

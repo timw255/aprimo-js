@@ -4,6 +4,7 @@ import { User } from "../../../model/productivity/User";
 import { UserRight } from "../../../model/productivity/UserRight";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateUserRequest {
@@ -39,10 +40,7 @@ export interface CreateUserRequest {
 
 export type UpdateUserRequest = Partial<CreateUserRequest>;
 
-export interface UserSearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  [key: string]: unknown;
-}
+export type UserSearchRequest = PmSearchRequest;
 
 export const users = (client: HttpClient) => ({
   getMe: async (): Promise<ApiResult<User>> => {

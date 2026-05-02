@@ -19,4 +19,12 @@ describe("productivity lookupLists integration", () => {
     logShape("lookupLists.getById", res.data);
     expect(res.data?.items).toBeDefined();
   });
+
+  it("gets a parameterized lookup with filterText", async () => {
+    const res = await aprimo.productivity.lookupLists.getById(506, {
+      filterText: "a",
+    });
+    expectOk(res);
+    logShape("lookupLists.getById(filterText)", res.data);
+  });
 });

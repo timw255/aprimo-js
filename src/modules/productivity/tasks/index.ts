@@ -3,6 +3,7 @@ import { HttpClient } from "../../../http";
 import { Task } from "../../../model/productivity/Task";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateSimpleTaskRequest {
@@ -27,13 +28,11 @@ export interface UpdateTaskRequest {
   [key: string]: unknown;
 }
 
-export interface TaskSearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  [key: string]: unknown;
-}
+export type TaskSearchRequest = PmSearchRequest;
 
 export interface DelegateTaskRequest {
-  userId: number;
+  taskAssigneeId: number;
+  newUserId: number;
 }
 
 export const tasks = (client: HttpClient) => ({
@@ -227,7 +226,18 @@ export const tasks = (client: HttpClient) => ({
     request: unknown,
   ): Promise<ApiResult<unknown>> => {
     return client.post(
-      `/api/tasks/${taskId}/document-uploads/${taskDocumentId}/attachments/${attachmentId}/verisons`,
+      `/api/tasks/${taskId}/document-uploads/${taskDocumentId}/attachments/${attachmentId}/versions`,
+      request,
+    );
+  },
+
+  uploadDocument: async (
+    taskId: number | string,
+    documentId: number | string,
+    request: { versionId: number | string },
+  ): Promise<ApiResult<void>> => {
+    return client.put(
+      `/api/tasks/${taskId}/document-uploads/${documentId}/upload-document`,
       request,
     );
   },

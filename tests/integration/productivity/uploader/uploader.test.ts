@@ -38,6 +38,15 @@ describe("productivity uploader integration", () => {
     expect(lastSeen).toBeGreaterThan(0);
   });
 
+  it("uploads a small file via the attachment chunk routes", async () => {
+    const file = createMockFile("pm-uploader-attachment.txt", 1 * 1024 * 1024);
+    const res = await aprimo.productivity.uploader.uploadFile(file, {
+      attachment: true,
+    });
+    expectOk(res);
+    expect(res.data?.FileId).toBeTruthy();
+  });
+
   it("exercises the low-level chunk primitives", async () => {
     const identifier = randomUUID();
     const file = createMockFile("pm-uploader-low.txt", 1024);

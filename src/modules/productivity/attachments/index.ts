@@ -4,6 +4,7 @@ import { Activity } from "../../../model/productivity/Activity";
 import { Attachment } from "../../../model/productivity/Attachment";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateAttachmentRequest {
@@ -24,10 +25,7 @@ export interface CreateAttachmentRequest {
 
 export type UpdateAttachmentRequest = Partial<CreateAttachmentRequest>;
 
-export interface AttachmentSearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  [key: string]: unknown;
-}
+export type AttachmentSearchRequest = PmSearchRequest;
 
 export const attachments = (client: HttpClient) => ({
   getById: async (id: number | string): Promise<ApiResult<Attachment>> => {

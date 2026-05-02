@@ -8,6 +8,7 @@ import {
 } from "../../../model/productivity/ActivityProposal";
 import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection";
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
+import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateActivityProposalRequest {
@@ -37,12 +38,7 @@ export interface CreateActivityProposalRequest {
 
 export type UpdateActivityProposalRequest = Partial<CreateActivityProposalRequest>;
 
-export interface ActivityProposalSearchRequest {
-  equals?: { fieldName: string; fieldValue: string | number | boolean };
-  lessthan?: { fieldName: string; fieldValue: string | number };
-  greaterthan?: { fieldName: string; fieldValue: string | number };
-  [key: string]: unknown;
-}
+export type ActivityProposalSearchRequest = PmSearchRequest;
 
 export const activityProposals = (client: HttpClient) => ({
   getById: async (

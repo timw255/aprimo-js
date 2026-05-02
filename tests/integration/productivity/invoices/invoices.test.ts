@@ -84,7 +84,7 @@ describe("productivity invoices integration", () => {
 
   it("searches invoices", async () => {
     const res = await aprimo.productivity.invoices.search(
-      { equals: { fieldname: "status", fieldvalue: 1 } },
+      { equals: { fieldName: "status", fieldValue: 1 } },
       { limit: 5 },
     );
     expectOk(res);

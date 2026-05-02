@@ -8,6 +8,21 @@ import { PmPagedCollection } from "../../../model/productivity/PmPagedCollection
 import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
 import { buildQueryString } from "../../../utils";
 
+export interface CreateAttachmentVersionRequest {
+  FileId: string;
+  FileName: string;
+  isDefaultVersion?: boolean;
+  attachmentId?: number;
+  versionType?: number;
+  versionComments?: string;
+  filename?: string;
+  downloadUri?: string;
+  versionUrl?: string;
+  thumbnailStatus?: number;
+  annotationFileType?: number;
+  sendNotification?: number;
+}
+
 export const attachmentVersions = (client: HttpClient) => ({
   getByAttachmentId: async (
     attachmentId: number | string,
@@ -15,6 +30,16 @@ export const attachmentVersions = (client: HttpClient) => ({
   ): Promise<ApiResult<PmPagedCollection<AttachmentVersion, "version" | "versions">>> => {
     return client.get(
       `/api/attachments/${attachmentId}/versions${buildQueryString(params)}`,
+    );
+  },
+
+  create: async (
+    attachmentId: number | string,
+    request: CreateAttachmentVersionRequest,
+  ): Promise<ApiResult<AttachmentVersion>> => {
+    return client.post(
+      `/api/attachments/${attachmentId}/versions`,
+      request,
     );
   },
 

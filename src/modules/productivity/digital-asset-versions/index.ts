@@ -10,9 +10,13 @@ import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
 import { buildQueryString } from "../../../utils";
 
 export interface CreateDigitalAssetVersionRequest {
+  FileId: string;
+  FileName: string;
   isDefaultVersion?: boolean;
   versionNumber?: string;
   versionDate?: string;
+  versionType?: number;
+  versionComments?: string;
   thumbnailStatus?: number;
   extension?: string;
   hasRendition?: boolean;
