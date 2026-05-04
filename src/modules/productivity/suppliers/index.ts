@@ -27,7 +27,7 @@ export type SupplierSearchRequest = PmSearchRequest;
 export const suppliers = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Supplier, "supplier" | "suppliers">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Supplier, "supplier">>> => {
     return client.get(`/api/suppliers${buildQueryString(params)}`);
   },
 
@@ -49,7 +49,7 @@ export const suppliers = (client: HttpClient) => ({
   search: async (
     request: SupplierSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Supplier, "supplier" | "suppliers">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Supplier, "supplier">>> => {
     return client.post(
       `/api/suppliers/search${buildQueryString(params)}`,
       request,

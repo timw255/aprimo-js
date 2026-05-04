@@ -7,7 +7,7 @@ export const groupMemberships = (client: HttpClient) => ({
   getByGroupId: async (
     groupId: number | string,
   ): Promise<
-    ApiResult<PmPagedCollection<GroupMembership, "membership" | "memberships">>
+    ApiResult<PmPagedCollection<GroupMembership, "group-membership">>
   > => {
     return client.get(`/api/groups/${groupId}/membership`);
   },

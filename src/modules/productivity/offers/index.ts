@@ -31,7 +31,7 @@ export type UpdateOfferRequest = Partial<CreateOfferRequest> & {
 export const offers = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Offer, "offer" | "offers">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Offer, "offer">>> => {
     return client.get(`/api/offers${buildQueryString(params)}`);
   },
 

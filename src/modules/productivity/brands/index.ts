@@ -8,7 +8,7 @@ import { buildQueryString } from "../../../utils";
 export const brands = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Brand, "brands" | "brand">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Brand, "brand">>> => {
     return client.get(`/api/brands${buildQueryString(params)}`);
   },
 });

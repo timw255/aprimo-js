@@ -38,7 +38,7 @@ export type JournalVoucherSearchRequest = PmSearchRequest;
 export const journalVouchers = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<JournalVoucher, "journal-voucher" | "journal-vouchers">>> => {
+  ): Promise<ApiResult<PmPagedCollection<JournalVoucher, "journal-voucher">>> => {
     return client.get(`/api/journal-vouchers${buildQueryString(params)}`);
   },
 
@@ -62,7 +62,7 @@ export const journalVouchers = (client: HttpClient) => ({
   search: async (
     request: JournalVoucherSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<JournalVoucher, "journal-voucher" | "journal-vouchers">>> => {
+  ): Promise<ApiResult<PmPagedCollection<JournalVoucher, "journal-voucher">>> => {
     return client.post(
       `/api/journal-vouchers/search${buildQueryString(params)}`,
       request,

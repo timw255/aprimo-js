@@ -26,7 +26,7 @@ export const activityRoles = (client: HttpClient) => ({
     activityId: number | string,
     params?: PmQueryParams,
   ): Promise<
-    ApiResult<PmPagedCollection<ActivityRole, "activity-role" | "activity-roles">>
+    ApiResult<PmPagedCollection<ActivityRole, "activity-role">>
   > => {
     return client.get(
       `/api/activities/${activityId}/roles${buildQueryString(params)}`,

@@ -38,7 +38,7 @@ export const treatments = (client: HttpClient) => ({
   search: async (
     request: TreatmentSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Treatment, "treatment" | "treatments">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Treatment, "treatment">>> => {
     return client.post(
       `/api/treatments/search${buildQueryString(params)}`,
       request,

@@ -21,7 +21,7 @@ export interface UpdateProgramRequest {
 export const programs = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Program, "program" | "programs">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Program, "program">>> => {
     return client.get(`/api/programs${buildQueryString(params)}`);
   },
 
@@ -32,7 +32,7 @@ export const programs = (client: HttpClient) => ({
   getByActivityId: async (
     activityId: number | string,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Program, "program" | "programs">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Program, "program">>> => {
     return client.get(
       `/api/activities/${activityId}/programs${buildQueryString(params)}`,
     );

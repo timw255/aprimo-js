@@ -42,7 +42,7 @@ export type CommitmentSearchRequest = PmSearchRequest;
 export const commitments = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Commitment, "commitment" | "commitments">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Commitment, "commitment">>> => {
     return client.get(`/api/commitments${buildQueryString(params)}`);
   },
 
@@ -66,7 +66,7 @@ export const commitments = (client: HttpClient) => ({
   search: async (
     request: CommitmentSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Commitment, "commitment" | "commitments">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Commitment, "commitment">>> => {
     return client.post(
       `/api/commitments/search${buildQueryString(params)}`,
       request,

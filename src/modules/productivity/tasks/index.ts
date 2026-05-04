@@ -38,14 +38,14 @@ export interface DelegateTaskRequest {
 export const tasks = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Task, "task" | "tasks">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Task, "Task">>> => {
     return client.get(`/api/tasks${buildQueryString(params)}`);
   },
 
   getMine: async (
     status: number | string,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Task, "task" | "tasks">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Task, "Task">>> => {
     const merged = { status, ...(params ?? {}) };
     return client.get(`/api/tasks/mine${buildQueryString(merged)}`);
   },
@@ -204,7 +204,7 @@ export const tasks = (client: HttpClient) => ({
   search: async (
     request: TaskSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Task, "task" | "tasks">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Task, "Task">>> => {
     return client.post(`/api/tasks/search${buildQueryString(params)}`, request);
   },
 

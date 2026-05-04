@@ -37,7 +37,7 @@ export const digitalAssetVersions = (client: HttpClient) => ({
   getByAssetId: async (
     assetId: number | string,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<DigitalAssetVersion, "version" | "versions">>> => {
+  ): Promise<ApiResult<PmPagedCollection<DigitalAssetVersion, "versions">>> => {
     return client.get(
       `/api/digital-assets/${assetId}/versions${buildQueryString(params)}`,
     );

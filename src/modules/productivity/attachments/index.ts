@@ -35,7 +35,7 @@ export const attachments = (client: HttpClient) => ({
   getByProjectId: async (
     projectId: number | string,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Attachment, "attachment" | "attachments">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Attachment, "Attachment">>> => {
     return client.get(
       `/api/projects/${projectId}/attachments${buildQueryString(params)}`,
     );
@@ -78,7 +78,7 @@ export const attachments = (client: HttpClient) => ({
   search: async (
     request: AttachmentSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Attachment, "attachment" | "attachments">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Attachment, "Attachment">>> => {
     return client.post(
       `/api/attachments/search${buildQueryString(params)}`,
       request,

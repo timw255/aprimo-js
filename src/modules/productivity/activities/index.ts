@@ -40,7 +40,7 @@ export type ActivitySearchRequest = PmSearchRequest;
 export const activities = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Activity, "activities" | "activity">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Activity, "Activity">>> => {
     return client.get(`/api/activities/${buildQueryString(params)}`);
   },
 
@@ -62,7 +62,7 @@ export const activities = (client: HttpClient) => ({
   search: async (
     request: ActivitySearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Activity, "activities" | "activity">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Activity, "Activity">>> => {
     return client.post(`/api/activities/search${buildQueryString(params)}`, request);
   },
 

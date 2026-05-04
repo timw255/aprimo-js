@@ -26,7 +26,7 @@ export const activityCells = (client: HttpClient) => ({
   getByActivityId: async (
     activityId: number | string,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<ActivityCell, "activity-cell" | "activity-cells">>> => {
+  ): Promise<ApiResult<PmPagedCollection<ActivityCell, "activity-cell">>> => {
     return client.get(
       `/api/activities/${activityId}/activity-cells${buildQueryString(params)}`,
     );

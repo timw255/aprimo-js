@@ -24,7 +24,7 @@ export type GroupSearchRequest = PmSearchRequest;
 export const groups = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Group, "group" | "groups">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Group, "group">>> => {
     return client.get(`/api/groups${buildQueryString(params)}`);
   },
 
@@ -46,7 +46,7 @@ export const groups = (client: HttpClient) => ({
   search: async (
     request: GroupSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Group, "group" | "groups">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Group, "group">>> => {
     return client.post(`/api/groups/search${buildQueryString(params)}`, request);
   },
 

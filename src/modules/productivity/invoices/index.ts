@@ -41,7 +41,7 @@ export type InvoiceSearchRequest = PmSearchRequest;
 export const invoices = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Invoice, "invoices" | "invoice">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Invoice, "invoices">>> => {
     return client.get(`/api/invoices${buildQueryString(params)}`);
   },
 
@@ -63,7 +63,7 @@ export const invoices = (client: HttpClient) => ({
   search: async (
     request: InvoiceSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Invoice, "invoices" | "invoice">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Invoice, "invoice">>> => {
     return client.post(
       `/api/invoices/search${buildQueryString(params)}`,
       request,

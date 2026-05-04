@@ -24,7 +24,7 @@ export const activityCellTreatments = (client: HttpClient) => ({
     cellId: number | string,
     params?: PmQueryParams,
   ): Promise<
-    ApiResult<PmPagedCollection<ActivityCellTreatment, "activity-cell-treatment" | "activity-cell-treatments">>
+    ApiResult<PmPagedCollection<ActivityCellTreatment, "activity-cell-treatment">>
   > => {
     return client.get(
       `/api/activity-cells/${cellId}/activity-cell-treatments${buildQueryString(params)}`,

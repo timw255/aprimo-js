@@ -42,7 +42,7 @@ export interface ProjectAttachmentLinkRequest {
 export const projects = (client: HttpClient) => ({
   get: async (
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Project, "Project" | "project" | "projects">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Project, "Project">>> => {
     return client.get(`/api/projects${buildQueryString(params)}`);
   },
 
@@ -53,7 +53,7 @@ export const projects = (client: HttpClient) => ({
   getByActivityId: async (
     activityId: number | string,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<Project, "Project" | "project" | "projects">>> => {
+  ): Promise<ApiResult<PmPagedCollection<Project, "Project">>> => {
     return client.get(
       `/api/activities/${activityId}/projects${buildQueryString(params)}`,
     );
@@ -63,7 +63,7 @@ export const projects = (client: HttpClient) => ({
     projectId: number | string,
     params?: PmQueryParams,
   ): Promise<
-    ApiResult<PmPagedCollection<Attachment, "attachment" | "attachments">>
+    ApiResult<PmPagedCollection<Attachment, "Attachment">>
   > => {
     return client.get(
       `/api/projects/${projectId}/attachments${buildQueryString(params)}`,

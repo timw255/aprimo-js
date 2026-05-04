@@ -69,7 +69,7 @@ export const users = (client: HttpClient) => ({
   search: async (
     request: UserSearchRequest,
     params?: PmQueryParams,
-  ): Promise<ApiResult<PmPagedCollection<User, "user" | "users">>> => {
+  ): Promise<ApiResult<PmPagedCollection<User, "user">>> => {
     return client.post(`/api/users/search${buildQueryString(params)}`, request);
   },
 
