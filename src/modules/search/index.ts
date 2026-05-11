@@ -2,7 +2,7 @@ import { ApiResult } from "../../client";
 import { Expander } from "../../expander";
 import { HttpClient } from "../../http";
 import { SearchResponse } from "../../model/SearchResponse";
-import { buildHeaders } from "../../utils";
+import { buildHeaders, buildQueryString } from "../../utils";
 
 /**
  * An Aprimo search expression. The simplest form is just `{ expression: "..." }`
@@ -89,10 +89,12 @@ export const search = (client: HttpClient) => ({
     expander?: Expander,
   ): Promise<ApiResult<SearchResponse>> => {
     const headers = buildHeaders(undefined, expander);
+    const { page, pageSize, ...body } = request;
+    const qs = buildQueryString({ page, pageSize });
 
     return client.post<SearchResponse>(
-      "/api/core/search/records",
-      request,
+      `/api/core/search/records${qs}`,
+      body,
       headers,
     );
   },
@@ -115,10 +117,12 @@ export const search = (client: HttpClient) => ({
     expander?: Expander,
   ): Promise<ApiResult<SearchResponse>> => {
     const headers = buildHeaders(undefined, expander);
+    const { page, pageSize, ...body } = request;
+    const qs = buildQueryString({ page, pageSize });
 
     return client.post<SearchResponse>(
-      "/api/core/search/classifications",
-      request,
+      `/api/core/search/classifications${qs}`,
+      body,
       headers,
     );
   },
