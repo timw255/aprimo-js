@@ -55,6 +55,19 @@ export interface UpdateClassificationDownloadPermissionsRequest {
 }
 
 export const classifications = (client: HttpClient) => ({
+  /**
+   * Fetch a single page of classifications. Returns one page; use `getPaged`
+   * for full traversal, or `getById` for a single item.
+   *
+   * @param params - Pagination/sort options.
+   * @param expander - Optional `Expander` chain.
+   * @param languages - Language ids to include, or `"*"` for all.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.classifications.get({ pageSize: 100 });
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -69,6 +82,15 @@ export const classifications = (client: HttpClient) => ({
     return client.get("/api/core/classifications", headers);
   },
 
+  /**
+   * Fetch a single classification by id. Failure (e.g., not found) surfaces
+   * as `ok: false` with the HTTP status on `ApiResult`.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.classifications.getById("<id>");
+   * ```
+   */
   getById: async (
     id: string,
     expander?: Expander,
@@ -83,6 +105,22 @@ export const classifications = (client: HttpClient) => ({
     return client.get(`/api/core/classification/${id}`, headers);
   },
 
+  /**
+   * Async generator yielding pages of classifications until exhausted.
+   * Wraps `get` and follows `_links.next` automatically.
+   * Use for full-tree traversal or audits.
+   *
+   * @example
+   * ```ts
+   * const all: Classification[] = [];
+   *
+   * for await (const pageResult of aprimo.classifications.getPaged({ pageSize: 1000 })) {
+   *   all.push(...(pageResult.data?.items ?? []));
+   * }
+   *
+   * console.log("Classification count:", all.length);
+   * ```
+   */
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
@@ -106,6 +144,22 @@ export const classifications = (client: HttpClient) => ({
     }
   },
 
+  /**
+   * Create a new classification.
+   *
+   * @param request - Classification payload. See `CreateClassificationRequest`.
+   * @param immediateSearchIndexUpdate - When `true`, sets the
+   *   `set-immediateSearchIndexUpdate` header so the new classification is
+   *   immediately searchable.
+   * @returns `ApiResult` whose `data.id` is the new classification's id.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.classifications.create({
+   *   labels: [{ languageId: "<lang-id>", value: "Campaigns" }],
+   * });
+   * ```
+   */
   create: async (
     request: CreateClassificationRequest,
     immediateSearchIndexUpdate: boolean = false,
@@ -117,6 +171,22 @@ export const classifications = (client: HttpClient) => ({
     return client.post("/api/core/classifications", request, headers);
   },
 
+  /**
+   * Update an existing classification. Only include fields you want to change.
+   *
+   * @param id - Classification id.
+   * @param request - Partial update.
+   * @param immediateSearchIndexUpdate - When `true`, sets the
+   *   `set-immediateSearchIndexUpdate` header so the change is reflected in
+   *   search right away. Use sparingly — it's heavier on the server.
+   *
+   * @example
+   * ```ts
+   * await aprimo.classifications.update(id, {
+   *   labels: [{ languageId: "<lang-id>", value: "Renamed" }],
+   * });
+   * ```
+   */
   update: async (
     id: string,
     request: UpdateClassificationRequest,
@@ -129,6 +199,19 @@ export const classifications = (client: HttpClient) => ({
     return await client.put(`/api/core/classification/${id}`, request, headers);
   },
 
+  /**
+   * Permanently delete a classification.
+   *
+   * @param id - Classification id.
+   * @param immediateSearchIndexUpdate - When `true`, forces an immediate
+   *   reindex via the `set-immediateSearchIndexUpdate` header so the deletion
+   *   is reflected in search right away.
+   *
+   * @example
+   * ```ts
+   * await aprimo.classifications.delete(id);
+   * ```
+   */
   delete: async (
     id: string,
     immediateSearchIndexUpdate: boolean = false,
@@ -140,12 +223,35 @@ export const classifications = (client: HttpClient) => ({
     return client.delete(`/api/core/classification/${id}`, headers);
   },
 
+  /**
+   * Read the effective tree permissions on a classification for the current user.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.classifications.getTreePermission(id);
+   * ```
+   */
   getTreePermission: async (
     id: string,
   ): Promise<ApiResult<ClassificationUserPermissions>> => {
     return client.get(`/api/core/classification/${id}/classificationtreepermission`);
   },
 
+  /**
+   * Replace the user-group permissions on a classification subtree.
+   *
+   * @param id - Classification id.
+   * @param request - `breakInheritance` controls whether the subtree inherits
+   *   from its parent; `permissions` is a `SetActions` of user-group entries.
+   *
+   * @example
+   * ```ts
+   * await aprimo.classifications.updateTreePermissions(id, {
+   *   breakInheritance: true,
+   *   permissions: { addOrUpdate: [{ userGroupId, canRead: true }] },
+   * });
+   * ```
+   */
   updateTreePermissions: async (
     id: string,
     request: UpdateClassificationPermissionsRequest,
@@ -156,6 +262,17 @@ export const classifications = (client: HttpClient) => ({
     );
   },
 
+  /**
+   * Replace the per-record permissions assigned to records in this classification.
+   *
+   * @example
+   * ```ts
+   * await aprimo.classifications.updateRecordPermissions(id, {
+   *   breakInheritance: false,
+   *   permissions: { addOrUpdate: [...] },
+   * });
+   * ```
+   */
   updateRecordPermissions: async (
     id: string,
     request: UpdateClassificationPermissionsRequest,
@@ -166,6 +283,17 @@ export const classifications = (client: HttpClient) => ({
     );
   },
 
+  /**
+   * Replace the download permissions for records in this classification.
+   *
+   * @example
+   * ```ts
+   * await aprimo.classifications.updateDownloadPermissions(id, {
+   *   breakInheritance: false,
+   *   permissions: { addOrUpdate: [...] },
+   * });
+   * ```
+   */
   updateDownloadPermissions: async (
     id: string,
     request: UpdateClassificationDownloadPermissionsRequest,

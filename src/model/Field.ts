@@ -18,6 +18,11 @@ import { TimeField } from "./TimeField";
 import { UserGroupListField } from "./UserGroupListField";
 import { UserListField } from "./UserListField";
 
+/**
+ * Discriminated union of all field types that can appear on a record. The
+ * concrete shape of a field is determined by its `dataType` (e.g. `numeric`,
+ * `datetime`, `optionlist`, `recordlink`, etc.).
+ */
 export type Field =
   | SingleLineTextField
   | MultiLineTextField

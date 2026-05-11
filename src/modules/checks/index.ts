@@ -41,6 +41,14 @@ export interface CreateCheckFindingRequest {
 export type UpdateCheckFindingRequest = Partial<CreateCheckFindingRequest>;
 
 export const checks = (client: HttpClient) => ({
+  /**
+   * List configured checks.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.checks.get();
+   * ```
+   */
   get: async (
     params?: QueryParams,
   ): Promise<ApiResult<CheckCollection>> => {
@@ -48,14 +56,42 @@ export const checks = (client: HttpClient) => ({
     return client.get("/api/core/checks", headers);
   },
 
+  /**
+   * Fetch a single check by id.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.checks.getById(checkId);
+   * ```
+   */
   getById: async (id: string): Promise<ApiResult<Check>> => {
     return client.get(`/api/core/checks/${id}`);
   },
 
+  /**
+   * Create a new check.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.checks.create({
+   *   name: "Brand compliance",
+   *   actionTypeId: "<action-type-id>",
+   *   checkCategoryId: "<category-id>",
+   * });
+   * ```
+   */
   create: async (request: CreateCheckRequest): Promise<ApiResult<Check>> => {
     return client.post("/api/core/checks", request);
   },
 
+  /**
+   * Update an existing check.
+   *
+   * @example
+   * ```ts
+   * await aprimo.checks.update(id, { name: "Renamed" });
+   * ```
+   */
   update: async (
     id: string,
     request: UpdateCheckRequest,
@@ -63,6 +99,14 @@ export const checks = (client: HttpClient) => ({
     return client.put(`/api/core/checks/${id}`, request);
   },
 
+  /**
+   * List check categories.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.checks.getCategories();
+   * ```
+   */
   getCategories: async (
     params?: QueryParams,
   ): Promise<ApiResult<CheckCategoryCollection>> => {
@@ -70,10 +114,21 @@ export const checks = (client: HttpClient) => ({
     return client.get("/api/core/checkcategories", headers);
   },
 
+  /**
+   * Fetch a single check category by id.
+   */
   getCategoryById: async (id: string): Promise<ApiResult<CheckCategory>> => {
     return client.get(`/api/core/checkcategories/${id}`);
   },
 
+  /**
+   * List the check results recorded against a file version.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.checks.getResults(fileVersionId);
+   * ```
+   */
   getResults: async (
     fileVersionId: string,
     params?: QueryParams,
@@ -85,6 +140,7 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /** Fetch a single check result on a file version. */
   getResultById: async (
     fileVersionId: string,
     checkResultId: string,
@@ -94,6 +150,16 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /**
+   * Record a check result against a file version.
+   *
+   * @example
+   * ```ts
+   * await aprimo.checks.createResult(fileVersionId, {
+   *   checkId, outcome: "Pass",
+   * });
+   * ```
+   */
   createResult: async (
     fileVersionId: string,
     request: CreateCheckResultRequest,
@@ -104,6 +170,7 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /** Update a check result on a file version. */
   updateResult: async (
     fileVersionId: string,
     checkResultId: string,
@@ -115,6 +182,7 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /** Delete a check result from a file version. */
   deleteResult: async (
     fileVersionId: string,
     checkResultId: string,
@@ -124,6 +192,7 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /** List the findings logged against a check result. */
   getFindings: async (
     fileVersionId: string,
     checkResultId: string,
@@ -136,6 +205,7 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /** Fetch a single finding by occurrence id. */
   getFindingById: async (
     fileVersionId: string,
     checkResultId: string,
@@ -146,6 +216,16 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /**
+   * Add a finding to a check result.
+   *
+   * @example
+   * ```ts
+   * await aprimo.checks.createFinding(fileVersionId, checkResultId, {
+   *   occurrence: 1, finding: "Color profile drift", outcome: "Fail",
+   * });
+   * ```
+   */
   createFinding: async (
     fileVersionId: string,
     checkResultId: string,
@@ -157,6 +237,7 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /** Update a finding by occurrence id. */
   updateFinding: async (
     fileVersionId: string,
     checkResultId: string,
@@ -169,6 +250,7 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
+  /** Delete a finding by occurrence id. */
   deleteFinding: async (
     fileVersionId: string,
     checkResultId: string,

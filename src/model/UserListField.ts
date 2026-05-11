@@ -2,13 +2,27 @@ import { ApiLink } from "./ApiLink";
 import { UserListFieldDefinition } from "./UserListFieldDefinition";
 import { UserListFieldValues } from "./UserListFieldValues";
 
+/**
+ * Representation of a UserListField.
+ */
 export interface UserListField {
-  dataType: string;
+  /**
+   * Gets or sets the data type of this field.
+   */
+  dataType: "UserList";
+  /** Gets the name of this field. */
   fieldName: string;
+  /** Gets the id of this field. */
   id: string;
+  /** Gets whether the field value can be used as a parent in inheritance hierarchy. This property will not be returned by default. In order to include the property in the response, add a header with the name 'select-field' and the value 'Inheritable' to your request. */
   inheritable: boolean;
-  inheritanceState: string;
+  /**
+   * Gets the Inheritance State of this field. This property will not be returned by default. In order to include the property in the response, add a header with the name 'select-field' and the value 'InheritanceState' to your request.
+   */
+  inheritanceState: "None" | "Inherited";
+  /** Gets the label of this field. */
   label: string;
+  /** Gets the language specific data of this field. */
   localizedValues: UserListFieldValues[];
   _links: UserListFieldLinks;
   _embedded?: {

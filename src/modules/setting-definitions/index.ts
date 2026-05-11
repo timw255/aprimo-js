@@ -95,6 +95,15 @@ export type CreateSettingDefinitionRequest =
   | CreateRoleSettingDefinitionRequest;
 
 export const settingDefinitions = (client: HttpClient) => ({
+  /**
+   * List setting definitions. Returns one page; use `getPaged` for full
+   * traversal, or `getById` for a single item.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.settingDefinitions.get();
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -104,6 +113,21 @@ export const settingDefinitions = (client: HttpClient) => ({
     return client.get("/api/core/settingdefinitions", headers);
   },
 
+  /**
+   * Async generator yielding pages of setting definitions. Wraps `get` and
+   * follows `_links.next` until exhausted.
+   *
+   * @example
+   * ```ts
+   * const all: SettingDefinition[] = [];
+   *
+   * for await (const pageResult of aprimo.settingDefinitions.getPaged({ pageSize: 1000 })) {
+   *   all.push(...(pageResult.data?.items ?? []));
+   * }
+   *
+   * console.log("Setting definition count:", all.length);
+   * ```
+   */
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
@@ -129,6 +153,10 @@ export const settingDefinitions = (client: HttpClient) => ({
     }
   },
 
+  /**
+   * Fetch a single setting definition by id. Failure (e.g., not found)
+   * surfaces as `ok: false` with the HTTP status on `ApiResult`.
+   */
   getById: async (
     id: string,
     expander?: Expander,
@@ -138,12 +166,32 @@ export const settingDefinitions = (client: HttpClient) => ({
     return client.get(`/api/core/settingdefinition/${id}`, headers);
   },
 
+  /**
+   * Create a setting definition. The request shape is a discriminated union
+   * over the eight `dataType` values (`boolean`, `text`, `numeric`,
+   * `datetime`, `encryptedtext`, `xml`, `reference`, `role`); pass the shape
+   * matching the data type you want.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.settingDefinitions.create({
+   *   dataType: "boolean",
+   *   name: "EnableFeatureX",
+   *   categoryId,
+   *   allowSystemSetting: true,
+   *   defaultValue: false,
+   * });
+   * ```
+   */
   create: async (
     request: CreateSettingDefinitionRequest,
   ): Promise<ApiResult<SettingDefinition>> => {
     return client.post("/api/core/settingdefinitions", request);
   },
 
+  /**
+   * Permanently delete a setting definition.
+   */
   delete: async (id: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/settingdefinition/${id}`);
   },

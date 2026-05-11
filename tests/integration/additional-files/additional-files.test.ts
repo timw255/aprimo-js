@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 
 const aprimo = createClient({
   environment: process.env.APRIMO_ENVIRONMENT!,
@@ -15,6 +15,7 @@ describe("additionalFiles integration", () => {
   it("gets an additional file by id", async () => {
     const res = await aprimo.additionalFiles.getById(additionalFileId);
     expectOk(res);
+    logShape("additionalFiles.getById", res.data);
     expect(res.data?.id).toBeDefined();
   });
 });

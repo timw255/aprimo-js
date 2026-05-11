@@ -20,6 +20,16 @@ export interface UpdateFieldGroupRequest {
 }
 
 export const fieldGroups = (client: HttpClient) => ({
+  /**
+   * List field groups (named collections of related field definitions).
+   * Returns one page; use `getPaged` for full traversal, or `getById` for a
+   * single item.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.fieldGroups.get();
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -29,6 +39,21 @@ export const fieldGroups = (client: HttpClient) => ({
     return client.get("/api/core/fieldgroups", headers);
   },
 
+  /**
+   * Async generator yielding pages of field groups. Wraps `get` and follows
+   * `_links.next` until exhausted.
+   *
+   * @example
+   * ```ts
+   * const all: FieldGroup[] = [];
+   *
+   * for await (const pageResult of aprimo.fieldGroups.getPaged({ pageSize: 1000 })) {
+   *   all.push(...(pageResult.data?.items ?? []));
+   * }
+   *
+   * console.log("Field group count:", all.length);
+   * ```
+   */
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
@@ -50,6 +75,10 @@ export const fieldGroups = (client: HttpClient) => ({
     }
   },
 
+  /**
+   * Fetch a single field group by id. Failure (e.g., not found) surfaces as
+   * `ok: false` with the HTTP status on `ApiResult`.
+   */
   getById: async (
     id: string,
     expander?: Expander,
@@ -59,12 +88,33 @@ export const fieldGroups = (client: HttpClient) => ({
     return client.get(`/api/core/fieldgroup/${id}`, headers);
   },
 
+  /**
+   * Create a field group.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.fieldGroups.create({
+   *   name: "Marketing",
+   *   members: { addOrUpdate: [fieldDefId1, fieldDefId2] },
+   * });
+   * ```
+   */
   create: async (
     request: CreateFieldGroupRequest,
   ): Promise<ApiResult<FieldGroup>> => {
     return client.post("/api/core/fieldgroups", request);
   },
 
+  /**
+   * Update a field group.
+   *
+   * @example
+   * ```ts
+   * await aprimo.fieldGroups.update(id, {
+   *   members: { remove: [fieldDefId] },
+   * });
+   * ```
+   */
   update: async (
     id: string,
     request: UpdateFieldGroupRequest,
@@ -72,6 +122,9 @@ export const fieldGroups = (client: HttpClient) => ({
     return client.put(`/api/core/fieldgroup/${id}`, request);
   },
 
+  /**
+   * Permanently delete a field group.
+   */
   delete: async (id: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/fieldgroup/${id}`);
   },

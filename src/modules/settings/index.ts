@@ -1,9 +1,27 @@
 import { ApiResult } from "../../client";
+import { AprimoConfigError } from "../../errors";
 import { HttpClient } from "../../http";
 import { Setting, SettingScope } from "../../model/Setting";
 import { SettingCollection } from "../../model/SettingCollection";
 
 export const settings = (client: HttpClient) => {
+  /**
+   * Fetch one or more setting values by name.
+   *
+   * Pass a single string to fetch one setting (returns `ApiResult<Setting>`);
+   * pass an array of strings to fetch many at once (returns
+   * `ApiResult<SettingCollection>`).
+   *
+   * @param name - Setting name (or array of names).
+   * @param scope - Optional scope: `"user"`, `"usergroup"`, `"site"`, or `"system"`.
+   * @param scopeId - Required when `scope` is `"usergroup"` or `"site"`.
+   *
+   * @example
+   * ```ts
+   * const single = await aprimo.settings.getByName("MySetting");
+   * const many = await aprimo.settings.getByName(["A", "B", "C"]);
+   * ```
+   */
   function getByName(
     name: string,
     scope?: SettingScope,
@@ -49,6 +67,18 @@ export const settings = (client: HttpClient) => {
   return {
     getByName,
 
+    /**
+     * Set a setting value at a given scope.
+     *
+     * Throws if `scope` is `"usergroup"` or `"site"` and `scopeId` is missing.
+     *
+     * @example
+     * ```ts
+     * await aprimo.settings.update({
+     *   name: "MySetting", value: "true", scope: "system",
+     * });
+     * ```
+     */
     update: async (setting: {
       name: string;
       value: string;
@@ -59,7 +89,9 @@ export const settings = (client: HttpClient) => {
         (setting.scope === "usergroup" || setting.scope === "site") &&
         !setting.scopeId
       ) {
-        throw new Error(`scopeId is required when scope is '${setting.scope}'`);
+        throw new AprimoConfigError(
+          `scopeId is required when scope is '${setting.scope}'`,
+        );
       }
 
       return client.put(

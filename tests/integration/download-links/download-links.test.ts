@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -15,6 +15,7 @@ describe("downloadLinks integration", () => {
   it("fetches a list of download links", async () => {
     const res = await aprimo.downloadLinks.get({ pageSize: 5 });
     expectOk(res);
+    logShape("downloadLinks.get", res.data);
 
     const items = res.data?.items ?? [];
     expect(items.length).toBeGreaterThan(0);
@@ -28,6 +29,7 @@ describe("downloadLinks integration", () => {
 
     const res = await aprimo.downloadLinks.getById(downloadLinkId);
     expectOk(res);
+    logShape("downloadLinks.getById", res.data);
     expect(res.data?.id).toBe(downloadLinkId);
   });
 });

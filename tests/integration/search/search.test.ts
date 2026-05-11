@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 
 const aprimo = createClient({
   environment: process.env.APRIMO_ENVIRONMENT!,
@@ -18,6 +18,7 @@ describe("search integration", () => {
     });
 
     expectOk(res);
+    logShape("search.records", res.data);
     expect(res.data?.items.length).toBeGreaterThan(0);
     expect(res.data?.page).toBeDefined();
   });
@@ -30,6 +31,7 @@ describe("search integration", () => {
     });
 
     expectOk(res);
+    logShape("search.classifications", res.data);
     expect(res.data?.items.length).toBeGreaterThan(0);
     expect(res.data?.page).toBeDefined();
   });

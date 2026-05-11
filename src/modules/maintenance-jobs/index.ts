@@ -7,6 +7,14 @@ import { QueryParams } from "../../model/QueryParams";
 import { buildHeaders } from "../../utils";
 
 export const maintenanceJobs = (client: HttpClient) => ({
+  /**
+   * List background maintenance jobs and their status.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.maintenanceJobs.get();
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,

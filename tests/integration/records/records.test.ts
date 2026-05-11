@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -24,6 +24,7 @@ describe("records integration", () => {
     );
 
     expectOk(res);
+    logShape("records.create", res.data);
     expect(res.data?.id).toBeDefined();
     recordId = res.data!.id;
   });
@@ -32,6 +33,7 @@ describe("records integration", () => {
     const res = await aprimo.records.getById(recordId);
 
     expectOk(res);
+    logShape("records.getById", res.data);
     expect(res.data?.id).toBe(recordId);
   });
 
@@ -41,6 +43,7 @@ describe("records integration", () => {
     });
 
     expectOk(res);
+    logShape("records.update", res.data);
   });
 
   it("updates the record with immediateSearchIndexUpdate", async () => {
@@ -51,11 +54,13 @@ describe("records integration", () => {
     );
 
     expectOk(res);
+    logShape("records.update:immediateSearchIndexUpdate", res.data);
   });
 
   it("fetches records", async () => {
     const res = await aprimo.records.get({ pageSize: 5 });
     expectOk(res);
+    logShape("records.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -64,6 +69,7 @@ describe("records integration", () => {
 
     for await (const page of aprimo.records.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("records.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -74,5 +80,6 @@ describe("records integration", () => {
   it("deletes the record", async () => {
     const res = await aprimo.records.delete(recordId);
     expectOk(res);
+    logShape("records.delete", res.data);
   });
 });

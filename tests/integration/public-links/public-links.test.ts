@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { Expander } from "../../../src/expander";
 import { FileVersion } from "../../../src/model/FileVersion";
 import { Record } from "../../../src/model/Record";
@@ -46,6 +46,7 @@ describe("public links integration", () => {
     });
 
     expectOk(res);
+    logShape("publicLinks.create", res.data);
     expect(res.data?.id).toBeDefined();
     expect(res.data?.uri).toContain("https://p1.aprimocdn.net");
 
@@ -55,6 +56,7 @@ describe("public links integration", () => {
   it("gets the public link by ID", async () => {
     const res = await aprimo.publicLinks.getById(publicLinkId);
     expectOk(res);
+    logShape("publicLinks.getById", res.data);
     expect(res.data?.id).toBe(publicLinkId);
   });
 
@@ -64,10 +66,12 @@ describe("public links integration", () => {
     });
 
     expectOk(res);
+    logShape("publicLinks.update", res.data);
   });
 
   it("deletes the public link", async () => {
     const res = await aprimo.publicLinks.delete(publicLinkId);
     expectOk(res);
+    logShape("publicLinks.delete", res.data);
   });
 });

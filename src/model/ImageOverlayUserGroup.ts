@@ -1,7 +1,11 @@
 import { ApiLink } from "./ApiLink";
 import { UserGroup } from "./UserGroup";
 
+/**
+ * Representation of an overlay/EULA user group.
+ */
 export interface ImageOverlayUserGroup {
+  /** The Id of this user group. */
   id: string;
   _links: ImageOverlayUserGroupLinks;
   _embedded?: {
@@ -12,6 +16,9 @@ export interface ImageOverlayUserGroup {
   };
 }
 
+/**
+ * HAL `_links` for {@link ImageOverlayUserGroup}.
+ */
 export interface ImageOverlayUserGroupLinks {
   self: ApiLink;
   target: ApiLink<UserGroup>;

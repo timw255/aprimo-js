@@ -1,7 +1,12 @@
 import { ApiLink } from "./ApiLink";
 import { UserGroup } from "./UserGroup";
 
+/**
+ * Representation of a download agreement's user group — links a download agreement to a user
+ * group that it applies to.
+ */
 export interface DownloadAgreementUserGroup {
+  /** Gets the Id of this user group. */
   id: string;
   _links: DownloadAgreementUserGroupLinks;
   _embedded?: {

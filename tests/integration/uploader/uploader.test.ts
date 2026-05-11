@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import type { ApiResult } from "../../../src/client";
 import type { UploadSegmentSetupResponse } from "../../../src/modules/uploader";
 
@@ -23,6 +23,7 @@ describe("uploader integration", () => {
     const file = createMockFile("smallfile.txt", 5 * 1024 * 1024);
     const res = await aprimo.uploader.uploadFile(file);
     expectOk(res);
+    logShape("uploader.uploadFile:small", res.data);
     expect(res.data?.token).toBeTruthy();
   });
 
@@ -30,6 +31,7 @@ describe("uploader integration", () => {
     const file = createMockFile("largefile.txt", 25 * 1024 * 1024);
     const res = await aprimo.uploader.uploadFile(file);
     expectOk(res);
+    logShape("uploader.uploadFile:large", res.data);
     expect(res.data?.token).toBeTruthy();
   });
 
@@ -43,6 +45,7 @@ describe("uploader integration", () => {
     });
 
     expectOk(res);
+    logShape("uploader.uploadFile:progress", res.data);
     expect(res.data?.token).toBeTruthy();
     expect(progressCb).toHaveBeenCalled();
     expect(progressCb.mock.calls.some(([bytes]) => bytes > 0)).toBe(true);

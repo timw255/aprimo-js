@@ -7,6 +7,14 @@ import { QueryParams } from "../../model/QueryParams";
 import { buildHeaders } from "../../utils";
 
 export const downloadLinks = (client: HttpClient) => ({
+  /**
+   * List authenticated download links generated for files / renditions.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.downloadLinks.get({ pageSize: 50 });
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -16,6 +24,14 @@ export const downloadLinks = (client: HttpClient) => ({
     return await client.get("/api/core/downloadlinks", headers);
   },
 
+  /**
+   * Fetch a single download link by id.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.downloadLinks.getById(linkId);
+   * ```
+   */
   getById: async (
     id: string,
     expander?: Expander,

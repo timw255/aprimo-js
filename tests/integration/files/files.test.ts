@@ -1,6 +1,6 @@
 import { describe, it } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { Expander } from "../../../src/expander";
 import { Record } from "../../../src/model/Record";
 
@@ -32,10 +32,12 @@ describe("files integration", () => {
 
     const res = await aprimo.files.checkOut(fileId);
     expectOk(res);
+    logShape("files.checkOut", res.data);
   });
 
   it("checks in a file", async () => {
     const res = await aprimo.files.checkIn(fileId);
     expectOk(res);
+    logShape("files.checkIn", res.data);
   });
 });

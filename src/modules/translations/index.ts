@@ -16,6 +16,15 @@ export interface CreateTranslationResponse {
 }
 
 export const translations = (client: HttpClient) => ({
+  /**
+   * List UI/label translations. Returns one page; use `getPaged` for full
+   * traversal, or `getById` for a single item.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.translations.get();
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -25,6 +34,10 @@ export const translations = (client: HttpClient) => ({
     return await client.get("/api/core/translations", headers);
   },
 
+  /**
+   * Fetch a single translation by id. Failure (e.g., not found) surfaces as
+   * `ok: false` with the HTTP status on `ApiResult`.
+   */
   getById: async (
     id: string,
     expander?: Expander,
@@ -34,6 +47,21 @@ export const translations = (client: HttpClient) => ({
     return client.get(`/api/core/translation/${id}`, headers);
   },
 
+  /**
+   * Async generator yielding pages of translations. Wraps `get` and follows
+   * `_links.next` until exhausted.
+   *
+   * @example
+   * ```ts
+   * const all: Translation[] = [];
+   *
+   * for await (const pageResult of aprimo.translations.getPaged({ pageSize: 1000 })) {
+   *   all.push(...(pageResult.data?.items ?? []));
+   * }
+   *
+   * console.log("Translation count:", all.length);
+   * ```
+   */
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
@@ -55,12 +83,18 @@ export const translations = (client: HttpClient) => ({
     }
   },
 
+  /**
+   * Create a translation.
+   */
   create: async (
     request: CreateTranslationRequest,
   ): Promise<ApiResult<Translation>> => {
     return client.post("/api/core/translations", request);
   },
 
+  /**
+   * Update a translation.
+   */
   update: async (
     id: string,
     request: UpdateTranslationRequest,
@@ -68,6 +102,9 @@ export const translations = (client: HttpClient) => ({
     return client.put(`/api/core/translation/${id}`, request);
   },
 
+  /**
+   * Permanently delete a translation.
+   */
   delete: async (id: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/translation/${id}`);
   },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -22,6 +22,7 @@ describe("collections integration", () => {
     });
 
     expectOk(res);
+    logShape("collections.createStatic", res.data);
     expect(res.data?.id).toBeDefined();
     staticId = res.data!.id;
   });
@@ -36,6 +37,7 @@ describe("collections integration", () => {
     });
 
     expectOk(res);
+    logShape("collections.createDynamic", res.data);
     expect(res.data?.id).toBeDefined();
     dynamicId = res.data!.id;
   });
@@ -56,6 +58,7 @@ describe("collections integration", () => {
     });
 
     expectOk(res);
+    logShape("collections.createDynamicWithSubExpressions", res.data);
     expect(res.data?.id).toBeDefined();
     dynamicSubExpressionId = res.data!.id;
   });
@@ -63,12 +66,14 @@ describe("collections integration", () => {
   it("reads the static collection by id", async () => {
     const res = await aprimo.collections.getById(staticId);
     expectOk(res);
+    logShape("collections.getById", res.data);
     expect(res.data?.id).toBe(staticId);
   });
 
   it("fetches collections", async () => {
     const res = await aprimo.collections.get({ pageSize: 5 });
     expectOk(res);
+    logShape("collections.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -77,6 +82,7 @@ describe("collections integration", () => {
 
     for await (const page of aprimo.collections.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("collections.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -94,6 +100,7 @@ describe("collections integration", () => {
     });
 
     expectOk(res);
+    logShape("collections.updateRecords:add", res.data);
   });
 
   it("removes the test record from the test static collection", async () => {
@@ -104,20 +111,24 @@ describe("collections integration", () => {
     });
 
     expectOk(res);
+    logShape("collections.updateRecords:remove", res.data);
   });
 
   it("deletes the static collection", async () => {
     const res = await aprimo.collections.delete(staticId);
     expectOk(res);
+    logShape("collections.delete:static", res.data);
   });
 
   it("deletes the dynamic collection", async () => {
     const res = await aprimo.collections.delete(dynamicId);
     expectOk(res);
+    logShape("collections.delete:dynamic", res.data);
   });
 
   it("deletes the dynamic collection with sub-expressions", async () => {
     const res = await aprimo.collections.delete(dynamicSubExpressionId);
     expectOk(res);
+    logShape("collections.delete:dynamicSubExpressions", res.data);
   });
 });

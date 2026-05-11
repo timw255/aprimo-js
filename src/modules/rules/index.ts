@@ -22,6 +22,15 @@ export interface CreateRuleResponse {
 }
 
 export const rules = (client: HttpClient) => ({
+  /**
+   * List configured rules. Returns one page; use `getPaged` for full
+   * traversal, or `getById` for a single item.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.rules.get();
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -31,6 +40,21 @@ export const rules = (client: HttpClient) => ({
     return client.get("/api/core/rules", headers);
   },
 
+  /**
+   * Async generator yielding pages of rules. Wraps `get` and follows
+   * `_links.next` until exhausted.
+   *
+   * @example
+   * ```ts
+   * const all: Rule[] = [];
+   *
+   * for await (const pageResult of aprimo.rules.getPaged({ pageSize: 1000 })) {
+   *   all.push(...(pageResult.data?.items ?? []));
+   * }
+   *
+   * console.log("Rule count:", all.length);
+   * ```
+   */
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
@@ -52,6 +76,10 @@ export const rules = (client: HttpClient) => ({
     }
   },
 
+  /**
+   * Fetch a single rule by id. Failure (e.g., not found) surfaces as
+   * `ok: false` with the HTTP status on `ApiResult`.
+   */
   getById: async (
     id: string,
     expander?: Expander,
@@ -61,10 +89,25 @@ export const rules = (client: HttpClient) => ({
     return client.get(`/api/core/rule/${id}`, headers);
   },
 
+  /**
+   * Create a rule with conditions and actions.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.rules.create({
+   *   name: "Auto-classify videos",
+   *   conditions: { addOrUpdate: [...] },
+   *   actions: { addOrUpdate: [...] },
+   * });
+   * ```
+   */
   create: async (request: CreateRuleRequest): Promise<ApiResult<Rule>> => {
     return client.post("/api/core/rules", request);
   },
 
+  /**
+   * Update an existing rule.
+   */
   update: async (
     id: string,
     request: Partial<CreateRuleRequest>,
@@ -72,6 +115,9 @@ export const rules = (client: HttpClient) => ({
     return client.put(`/api/core/rule/${id}`, request);
   },
 
+  /**
+   * Permanently delete a rule.
+   */
   delete: async (id: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/rule/${id}`);
   },

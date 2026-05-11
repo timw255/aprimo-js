@@ -13,13 +13,13 @@ export type CreateFileTypeRequest = Omit<
   CreateFrom<FileType>,
   | "catalogActions"
   | "mediaEngines"
-  | "previewRenderWebControls"
+  | "previewPlayers"
   | "registeredFields"
   | "registeredFieldGroups"
 > & {
   catalogActions?: SetActions<FileTypeAction>;
   mediaEngines?: SetActions<string>;
-  previewRenderWebControls?: SetActions<string>;
+  previewPlayers?: SetActions<string>;
   registeredFields?: SetActions<string>;
   registeredFieldGroups?: SetActions<string>;
 };
@@ -31,6 +31,15 @@ export interface CreateFileTypeResponse {
 }
 
 export const fileTypes = (client: HttpClient) => ({
+  /**
+   * List file-type definitions (mime-type / extension mappings). Returns one
+   * page; use `getPaged` for full traversal, or `getById` for a single item.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.fileTypes.get();
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -40,6 +49,10 @@ export const fileTypes = (client: HttpClient) => ({
     return client.get("/api/core/filetypes", headers);
   },
 
+  /**
+   * Fetch a single file type by id. Failure (e.g., not found) surfaces as
+   * `ok: false` with the HTTP status on `ApiResult`.
+   */
   getById: async (
     id: string,
     expander?: Expander,
@@ -49,6 +62,21 @@ export const fileTypes = (client: HttpClient) => ({
     return client.get(`/api/core/filetype/${id}`, headers);
   },
 
+  /**
+   * Async generator yielding pages of file types. Wraps `get` and follows
+   * `_links.next` until exhausted.
+   *
+   * @example
+   * ```ts
+   * const all: FileType[] = [];
+   *
+   * for await (const pageResult of aprimo.fileTypes.getPaged({ pageSize: 1000 })) {
+   *   all.push(...(pageResult.data?.items ?? []));
+   * }
+   *
+   * console.log("File type count:", all.length);
+   * ```
+   */
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
@@ -70,12 +98,27 @@ export const fileTypes = (client: HttpClient) => ({
     }
   },
 
+  /**
+   * Create a file type.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.fileTypes.create({
+   *   name: "WebP",
+   *   extension: "webp",
+   *   mimeType: "image/webp",
+   * });
+   * ```
+   */
   create: async (
     request: CreateFileTypeRequest,
   ): Promise<ApiResult<FileType>> => {
     return client.post("/api/core/filetypes", request);
   },
 
+  /**
+   * Update a file type.
+   */
   update: async (
     id: string,
     request: UpdateFileTypeRequest,
@@ -83,6 +126,9 @@ export const fileTypes = (client: HttpClient) => ({
     return await client.put(`/api/core/filetype/${id}`, request);
   },
 
+  /**
+   * Permanently delete a file type.
+   */
   delete: async (id: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/filetype/${id}`);
   },

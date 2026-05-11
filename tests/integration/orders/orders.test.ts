@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -40,6 +40,7 @@ describe("orders integration", () => {
     });
 
     expectOk(res);
+    logShape("orders.create", res.data);
     expect(res.data?.id).toBeTruthy();
     expect(res.data?.status).toMatch(/Success|Executing|Queued/i);
 
@@ -52,6 +53,7 @@ describe("orders integration", () => {
     const res = await aprimo.orders.getById(orderId);
 
     expectOk(res);
+    logShape("orders.getById", res.data);
     expect(res.data?.id).toBe(orderId);
   });
 
@@ -59,6 +61,7 @@ describe("orders integration", () => {
     const res = await aprimo.orders.get({ pageSize: 5 });
 
     expectOk(res);
+    logShape("orders.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThanOrEqual(0);
   });
 });

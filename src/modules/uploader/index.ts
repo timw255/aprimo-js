@@ -1,4 +1,10 @@
 import { ApiResult } from "../../client";
+import {
+  AprimoCancelledError,
+  AprimoUploadCommitError,
+  AprimoUploadSegmentError,
+  AprimoUploadSetupError,
+} from "../../errors";
 import { HttpClient } from "../../http";
 
 export type UploadTokenResponse = {
@@ -13,14 +19,70 @@ export type UploadCommitResponse = {
   token: string;
 };
 
+/**
+ * Options for `uploader.uploadFile`.
+ *
+ * Files larger than 20MB (or any upload that passes options) are split into
+ * segments and uploaded via the segmented-upload endpoint. Smaller files take
+ * the single-shot path.
+ */
 export type UploadOptions = {
+  /**
+   * Segment size in **megabytes**. Defaults to 20MB. Smaller values trade
+   * throughput for resilience on flaky connections.
+   */
   segmentSize?: number;
+  /**
+   * Maximum number of segments to upload in parallel. Defaults to 1
+   * (sequential). Higher values speed up large uploads if the environment
+   * can sustain the bandwidth.
+   */
   parallelLimit?: number;
+  /**
+   * Called after each segment finishes with the running and total segment
+   * counts. Use it to drive progress UI.
+   */
   onProgress?: (uploaded: number, total: number) => void;
+  /**
+   * AbortSignal that, when aborted, cancels the upload and resolves with
+   * `error.type === "AbortError"`.
+   */
   signal?: AbortSignal;
 };
 
 export const uploader = (client: HttpClient) => ({
+  /**
+   * Upload a file to Aprimo and return an upload token. Pass that token to
+   * `aprimo.records.create({ files: { master: token, ... } })` to attach the
+   * file to a new record.
+   *
+   * Small files (≤20MB and no options) take the single-shot path; larger
+   * files (or any call that passes options) are uploaded in segments.
+   *
+   * On failure, `result.error.type` distinguishes the failure mode:
+   * `"AbortError"`, `"UploadSetupFailed"`, `"UploadSegmentFailed"`, or
+   * `"UploadCommitFailed"`.
+   *
+   * @param file - The `File` to upload.
+   * @param options - Segment size, parallelism, progress, cancellation. See
+   *   `UploadOptions`.
+   * @returns `ApiResult` whose `data.token` is the upload token used to
+   *   attach the file to a record.
+   *
+   * @example
+   * ```ts
+   * const file = new File([blob], "asset.mp4");
+   * const res = await aprimo.uploader.uploadFile(file, {
+   *   segmentSize: 10,
+   *   parallelLimit: 4,
+   *   onProgress: (done, total) => console.log(`${done}/${total}`),
+   * });
+   * if (res.ok) {
+   *   const token = res.data!.token;
+   *   // ...pass token to records.create...
+   * }
+   * ```
+   */
   uploadFile: async (
     file: File,
     options: UploadOptions = {},
@@ -62,11 +124,10 @@ const uploadLargeFile = async (
     return {
       ok: false,
       status: setupRes.status,
-      error: {
-        type: "UploadSetupFailed",
-        message: "Could not get upload URI",
+      error: new AprimoUploadSetupError("Could not get upload URI", {
+        cause: setupRes.error,
         raw: setupRes,
-      },
+      }),
     };
   }
 
@@ -85,10 +146,7 @@ const uploadLargeFile = async (
       resolve({
         ok: false,
         status: 499,
-        error: {
-          type: "AbortError",
-          message: "Upload was cancelled before start",
-        },
+        error: new AprimoCancelledError("Upload was cancelled before start"),
       });
       return;
     }
@@ -99,10 +157,7 @@ const uploadLargeFile = async (
       resolve({
         ok: false,
         status: 499,
-        error: {
-          type: "AbortError",
-          message: "Upload was cancelled",
-        },
+        error: new AprimoCancelledError("Upload was cancelled"),
       });
     };
 
@@ -133,11 +188,10 @@ const uploadLargeFile = async (
         resolve({
           ok: false,
           status: res.status,
-          error: {
-            type: "UploadSegmentFailed",
-            message: `Segment ${index} failed to upload`,
-            raw: res,
-          },
+          error: new AprimoUploadSegmentError(
+            `Segment ${index} failed to upload`,
+            { segmentIndex: index, cause: res.error, raw: res },
+          ),
         });
         return;
       }
@@ -154,6 +208,17 @@ const uploadLargeFile = async (
           },
         );
         signal?.removeEventListener("abort", onAbort);
+        if (!commitRes.ok) {
+          resolve({
+            ok: false,
+            status: commitRes.status,
+            error: new AprimoUploadCommitError(
+              "Upload commit failed after all segments uploaded",
+              { cause: commitRes.error, raw: commitRes },
+            ),
+          });
+          return;
+        }
         resolve(commitRes);
         return;
       }

@@ -28,18 +28,54 @@ import { recordLocks } from "./modules/record-locks";
 import { files } from "./modules/files";
 import { languages } from "./modules/languages";
 import { productivity } from "./modules/productivity";
+import { AprimoError } from "./errors";
 
+/**
+ * Standard envelope returned by every SDK call.
+ *
+ * `ok` is `true` for HTTP 2xx responses; `data` is then populated. On failure,
+ * `error` is an instance of `AprimoError` (or one of its subclasses like
+ * `AprimoNotFoundError`, `AprimoRateLimitError`, etc.) — use `instanceof` to
+ * narrow it. `error.type`, `error.message`, and `error.raw` are still
+ * available for backward compatibility with the SDK's earlier stringly-typed
+ * error shape.
+ *
+ * @example
+ * ```ts
+ * import { AprimoNotFoundError, AprimoRateLimitError } from "aprimo-js";
+ *
+ * const res = await aprimo.records.getById(id);
+ * if (!res.ok) {
+ *   if (res.error instanceof AprimoNotFoundError) {
+ *     // No such record.
+ *   } else if (res.error instanceof AprimoRateLimitError) {
+ *     // Server asked us to slow down — res.error.retryAfter has the hint.
+ *   } else {
+ *     console.error(res.error?.message);
+ *   }
+ * }
+ * ```
+ */
 export type ApiResult<T> = {
   ok: boolean;
   status: number;
   data?: T;
-  error?: {
-    type?: string;
-    message?: string;
-    raw?: unknown;
-  };
+  error?: AprimoError;
 };
 
+/**
+ * The Aprimo SDK client. Each public property is a module wrapping a slice of
+ * the Aprimo REST API. Construct via `createClient(...)` rather than `new`.
+ *
+ * Grouping (purely visual — all modules sit on the same instance):
+ * - **Records & files**: records, files, fileVersions, fileTypes, additionalFiles, recordLocks, uploader
+ * - **Taxonomy & metadata**: classifications, contentTypes, fieldDefinitions, fieldGroups, languages, translations
+ * - **Discovery**: search, collections
+ * - **Access & permissions**: permissions, users, userGroups
+ * - **Sharing**: downloadLinks, publicLinks
+ * - **Operations**: auditTrail, checks, maintenanceJobs, orders, rules, settings, settingCategories, settingDefinitions
+ * - **Productivity (PM)**: productivity (sub-module tree for the PM API)
+ */
 export class Aprimo {
   private readonly damHttp: HttpClient;
   private readonly moHttp: HttpClient;
@@ -48,35 +84,83 @@ export class Aprimo {
   private readonly damUrl: string;
   private readonly moUrl: string;
 
-  public additionalFiles: ReturnType<typeof additionalFiles>;
-  public auditTrail: ReturnType<typeof auditTrail>;
-  public checks: ReturnType<typeof checks>;
-  public classifications: ReturnType<typeof classifications>;
-  public collections: ReturnType<typeof collections>;
-  public contentTypes: ReturnType<typeof contentTypes>;
-  public downloadLinks: ReturnType<typeof downloadLinks>;
-  public fieldDefinitions: ReturnType<typeof fieldDefinitions>;
-  public fieldGroups: ReturnType<typeof fieldGroups>;
-  public files: ReturnType<typeof files>;
-  public fileTypes: ReturnType<typeof fileTypes>;
-  public fileVersions: ReturnType<typeof fileVersions>;
-  public languages: ReturnType<typeof languages>;
-  public maintenanceJobs: ReturnType<typeof maintenanceJobs>;
-  public orders: ReturnType<typeof orders>;
-  public permissions: ReturnType<typeof permissions>;
-  public publicLinks: ReturnType<typeof publicLinks>;
-  public recordLocks: ReturnType<typeof recordLocks>;
+  // --- Records & files ---
+
+  /** DAM records (assets) — create, read, update, delete, paged listing. */
   public records: ReturnType<typeof records>;
-  public rules: ReturnType<typeof rules>;
-  public search: ReturnType<typeof search>;
-  public settingCategories: ReturnType<typeof settingCategories>;
-  public settingDefinitions: ReturnType<typeof settingDefinitions>;
-  public settings: ReturnType<typeof settings>;
-  public translations: ReturnType<typeof translations>;
+  /** File-level operations: check-out / check-in to lock during version uploads. */
+  public files: ReturnType<typeof files>;
+  /** File version metadata for a record's master file. */
+  public fileVersions: ReturnType<typeof fileVersions>;
+  /** File-type definitions (mime-type / extension mappings). */
+  public fileTypes: ReturnType<typeof fileTypes>;
+  /** Additional (non-master) files attached to a file version. */
+  public additionalFiles: ReturnType<typeof additionalFiles>;
+  /** Record-level locks separate from file check-out. */
+  public recordLocks: ReturnType<typeof recordLocks>;
+  /** Upload files to Aprimo and receive an upload token to attach to records. */
   public uploader: ReturnType<typeof uploader>;
+
+  // --- Taxonomy & metadata ---
+
+  /** Classification tree (hierarchical taxonomy) and its permissions. */
+  public classifications: ReturnType<typeof classifications>;
+  /** Content-type definitions (the schemas records are stamped with). */
+  public contentTypes: ReturnType<typeof contentTypes>;
+  /** Field definitions (the metadata schema fields available on records). */
+  public fieldDefinitions: ReturnType<typeof fieldDefinitions>;
+  /** Field groups (collections of related field definitions). */
+  public fieldGroups: ReturnType<typeof fieldGroups>;
+  /** Configured tenant languages. */
+  public languages: ReturnType<typeof languages>;
+  /** UI/label translations. */
+  public translations: ReturnType<typeof translations>;
+
+  // --- Discovery ---
+
+  /** Search records and classifications by Aprimo search expression. */
+  public search: ReturnType<typeof search>;
+  /** Curated collections of records. */
+  public collections: ReturnType<typeof collections>;
+
+  // --- Access & permissions ---
+
+  /** Tenant-wide permissions queries. */
+  public permissions: ReturnType<typeof permissions>;
+  /** Users in the tenant. */
   public users: ReturnType<typeof users>;
+  /** User groups in the tenant. */
   public userGroups: ReturnType<typeof userGroups>;
 
+  // --- Sharing ---
+
+  /** Generate authenticated download links for files/renditions. */
+  public downloadLinks: ReturnType<typeof downloadLinks>;
+  /** Manage publicly-shareable links to records or renditions. */
+  public publicLinks: ReturnType<typeof publicLinks>;
+
+  // --- Operations ---
+
+  /** Read the audit trail for records and other entities. */
+  public auditTrail: ReturnType<typeof auditTrail>;
+  /** Run validation/integrity checks against the tenant. */
+  public checks: ReturnType<typeof checks>;
+  /** Schedule and inspect background maintenance jobs. */
+  public maintenanceJobs: ReturnType<typeof maintenanceJobs>;
+  /** Manage server-side orders (e.g., bulk operations). */
+  public orders: ReturnType<typeof orders>;
+  /** Tenant rules engine. */
+  public rules: ReturnType<typeof rules>;
+  /** Tenant settings values. */
+  public settings: ReturnType<typeof settings>;
+  /** Setting categories. */
+  public settingCategories: ReturnType<typeof settingCategories>;
+  /** Setting definitions. */
+  public settingDefinitions: ReturnType<typeof settingDefinitions>;
+
+  // --- Productivity (PM) ---
+
+  /** Aprimo Productivity (PM) API — activities, projects, tasks, brands, etc. */
   public productivity: ReturnType<typeof productivity>;
 
   /**

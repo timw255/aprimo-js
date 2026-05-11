@@ -2,6 +2,9 @@ import { ApiLink } from "./ApiLink";
 import { RichContentFieldDefinition } from "./RichContentFieldDefinition";
 import { RichContentFieldValue } from "./RichContentFieldValue";
 
+/**
+ * Representation of a RichContentField.
+ */
 export interface RichContentField {
   dataType: string;
   fieldName: string;

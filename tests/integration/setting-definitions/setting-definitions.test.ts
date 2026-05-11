@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -19,6 +19,7 @@ describe("settingDefinitions integration", () => {
     });
 
     expectOk(res);
+    logShape("settingCategories.create", res.data);
     expect(res.data?.id).toBeDefined();
     settingCategoryId = res.data!.id;
   });
@@ -35,6 +36,7 @@ describe("settingDefinitions integration", () => {
     });
 
     expectOk(res);
+    logShape("settingDefinitions.create", res.data);
     expect(res.data?.id).toBeDefined();
     settingDefinitionId = res.data!.id;
   });
@@ -42,12 +44,14 @@ describe("settingDefinitions integration", () => {
   it("reads the setting definition", async () => {
     const res = await aprimo.settingDefinitions.getById(settingDefinitionId);
     expectOk(res);
+    logShape("settingDefinitions.getById", res.data);
     expect(res.data?.id).toBeDefined();
   });
 
   it("fetches a list of setting definitions", async () => {
     const res = await aprimo.settingDefinitions.get({ pageSize: 5 });
     expectOk(res);
+    logShape("settingDefinitions.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -58,6 +62,7 @@ describe("settingDefinitions integration", () => {
       pageSize: 2,
     })) {
       expectOk(page);
+      logShape("settingDefinitions.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -68,10 +73,12 @@ describe("settingDefinitions integration", () => {
   it("deletes the setting definition", async () => {
     const res = await aprimo.settingDefinitions.delete(settingDefinitionId);
     expectOk(res);
+    logShape("settingDefinitions.delete", res.data);
   });
 
   it("deletes the setting category", async () => {
     const res = await aprimo.settingCategories.delete(settingCategoryId);
     expectOk(res);
+    logShape("settingCategories.delete", res.data);
   });
 });

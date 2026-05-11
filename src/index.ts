@@ -4,7 +4,20 @@ import {
   getClientCredentialsToken,
   getPasswordToken,
 } from "./auth";
+import { AprimoAuthConfigError } from "./errors";
 
+/**
+ * Authentication strategy for `createClient`.
+ *
+ * - `client_credentials`: service-to-service flow (scripts, background jobs).
+ *   Token is fetched and cached automatically.
+ * - `password`: act on behalf of a real user without a browser login.
+ *   Token is fetched and cached automatically.
+ * - `custom`: bring your own token provider — useful for browser flows
+ *   (PKCE + refresh) where you already manage token lifecycle.
+ *
+ * See the README "Authentication" section for the full setup walkthrough.
+ */
 export type AuthStrategy =
   | { type: "client_credentials"; clientId: string; clientSecret: string }
   | {
@@ -16,10 +29,37 @@ export type AuthStrategy =
     }
   | { type: "custom"; tokenProvider: () => Promise<string> };
 
+/**
+ * Options for `createClient`. `environment` is the Aprimo subdomain
+ * (the `<env>` in `https://<env>.aprimo.com`).
+ */
 export type CreateClientOptions = {
+  /** Your Aprimo subdomain — e.g., `"acme"` for `acme.aprimo.com`. */
   environment: string;
 } & AuthStrategy;
 
+/**
+ * Construct an authenticated Aprimo SDK client.
+ *
+ * The returned `Aprimo` instance exposes one property per API module
+ * (`records`, `files`, `search`, `uploader`, ...). For the credential and
+ * password flows the SDK caches and refreshes tokens for you; with the
+ * `custom` flow you own that lifecycle.
+ *
+ * @example
+ * ```ts
+ * import { createClient } from "aprimo-js";
+ *
+ * const aprimo = createClient({
+ *   type: "client_credentials",
+ *   environment: "your-subdomain",
+ *   clientId: "your-client-id",
+ *   clientSecret: "your-client-secret",
+ * });
+ *
+ * const res = await aprimo.records.get({ pageSize: 50 });
+ * ```
+ */
 export function createClient(options: CreateClientOptions): Aprimo {
   const { environment } = options;
 
@@ -38,7 +78,9 @@ export function createClient(options: CreateClientOptions): Aprimo {
   } else if (options.type === "custom") {
     tokenProvider = options.tokenProvider;
   } else {
-    throw new Error("Invalid authentication strategy");
+    throw new AprimoAuthConfigError(
+      `Invalid authentication strategy: ${JSON.stringify((options as { type?: unknown }).type)}`,
+    );
   }
 
   return new Aprimo(environment, tokenProvider);
@@ -47,3 +89,45 @@ export function createClient(options: CreateClientOptions): Aprimo {
 export { Aprimo };
 export { computeSetActions } from "./utils";
 export { Expander } from "./expander";
+
+// Error classes — see `src/errors.ts` for the full hierarchy. Use `instanceof`
+// to narrow `ApiResult.error` (or thrown values from `createClient`,
+// `aprimo.uploader.uploadFile`, etc.).
+export {
+  AprimoError,
+  AprimoHttpError,
+  AprimoBadRequestError,
+  AprimoUnauthorizedError,
+  AprimoForbiddenError,
+  AprimoNotFoundError,
+  AprimoConflictError,
+  AprimoValidationError,
+  AprimoRateLimitError,
+  AprimoServerError,
+  AprimoNetworkError,
+  AprimoTimeoutError,
+  AprimoCancelledError,
+  AprimoAuthError,
+  AprimoAuthCredentialsError,
+  AprimoAuthConfigError,
+  AprimoUploadError,
+  AprimoUploadSetupError,
+  AprimoUploadSegmentError,
+  AprimoUploadCommitError,
+  AprimoConfigError,
+  isAprimoError,
+  isAprimoHttpError,
+  isAprimoNetworkError,
+  isAprimoTimeoutError,
+  isAprimoCancelledError,
+  isAprimoAuthError,
+  isAprimoUploadError,
+  isAprimoConfigError,
+} from "./errors";
+export type {
+  AprimoErrorOptions,
+  AprimoHttpErrorOptions,
+  AprimoRateLimitErrorOptions,
+  AprimoAuthCredentialsErrorOptions,
+  AprimoUploadSegmentErrorOptions,
+} from "./errors";

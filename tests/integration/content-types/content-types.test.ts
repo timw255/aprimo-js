@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { TitleConfiguration } from "../../../src/model/TitleConfiguration";
 import { createClient } from "../../../src";
 
@@ -25,6 +25,7 @@ describe("contentTypes integration", () => {
     });
 
     expectOk(res);
+    logShape("contentTypes.create", res.data);
     expect(res.data?.id).toBeDefined();
     id = res.data!.id;
   });
@@ -32,6 +33,7 @@ describe("contentTypes integration", () => {
   it("reads the content type by ID", async () => {
     const res = await aprimo.contentTypes.getById(id);
     expectOk(res);
+    logShape("contentTypes.getById", res.data);
     expect(res.data?.id).toBe(id);
   });
 
@@ -41,11 +43,13 @@ describe("contentTypes integration", () => {
     });
 
     expectOk(res);
+    logShape("contentTypes.update", res.data);
   });
 
   it("fetches a list of content types", async () => {
     const res = await aprimo.contentTypes.get({ pageSize: 5 });
     expectOk(res);
+    logShape("contentTypes.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -54,6 +58,7 @@ describe("contentTypes integration", () => {
 
     for await (const page of aprimo.contentTypes.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("contentTypes.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -64,5 +69,6 @@ describe("contentTypes integration", () => {
   it("deletes the content type", async () => {
     const res = await aprimo.contentTypes.delete(id);
     expectOk(res);
+    logShape("contentTypes.delete", res.data);
   });
 });

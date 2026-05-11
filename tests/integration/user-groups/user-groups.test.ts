@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 
 const aprimo = createClient({
   environment: process.env.APRIMO_ENVIRONMENT!,
@@ -18,6 +18,7 @@ describe("user groups integration", () => {
     });
 
     expectOk(res);
+    logShape("userGroups.create", res.data);
     expect(res.data?.id).toBeDefined();
     userGroupId = res.data!.id;
   });
@@ -25,6 +26,7 @@ describe("user groups integration", () => {
   it("gets a user group by ID", async () => {
     const res = await aprimo.userGroups.getById(userGroupId);
     expectOk(res);
+    logShape("userGroups.getById", res.data);
     expect(res.data?.id).toBe(userGroupId);
   });
 
@@ -34,11 +36,13 @@ describe("user groups integration", () => {
     });
 
     expectOk(updateRes);
+    logShape("userGroups.update", updateRes.data);
   });
 
   it("fetches a list of user groups", async () => {
     const res = await aprimo.userGroups.get({ pageSize: 5 });
     expectOk(res);
+    logShape("userGroups.get", res.data);
     expect(res.data?.items.length).toBeGreaterThan(0);
   });
 
@@ -47,6 +51,7 @@ describe("user groups integration", () => {
 
     for await (const page of aprimo.userGroups.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("userGroups.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -57,12 +62,14 @@ describe("user groups integration", () => {
   it("gets permissions for a user group", async () => {
     const res = await aprimo.userGroups.getPermissions(userGroupId);
     expectOk(res);
+    logShape("userGroups.getPermissions", res.data);
     expect(res.data?.items).toBeDefined();
   });
 
   it("updates permissions for a user group", async () => {
     const permsRes = await aprimo.userGroups.getPermissions(userGroupId);
     expectOk(permsRes);
+    logShape("userGroups.getPermissions", permsRes.data);
 
     const permissionName = permsRes.data?.items?.[0]?.name;
     expect(permissionName).toBeDefined();
@@ -79,9 +86,11 @@ describe("user groups integration", () => {
     });
 
     expectOk(updateRes);
+    logShape("userGroups.updatePermissions", updateRes.data);
 
     const verifyRes = await aprimo.userGroups.getPermissions(userGroupId);
     expectOk(verifyRes);
+    logShape("userGroups.getPermissions:verify", verifyRes.data);
 
     const updatedPerm = verifyRes.data?.items?.find(
       (p) => p.name === permissionName,
@@ -92,5 +101,6 @@ describe("user groups integration", () => {
   it("deletes the user group", async () => {
     const res = await aprimo.userGroups.delete(userGroupId);
     expectOk(res);
+    logShape("userGroups.delete", res.data);
   });
 });

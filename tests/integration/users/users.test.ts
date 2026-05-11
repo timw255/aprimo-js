@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 
 const aprimo = createClient({
   environment: process.env.APRIMO_ENVIRONMENT!,
@@ -21,6 +21,7 @@ describe("users integration", () => {
     });
 
     expectOk(res);
+    logShape("users.create", res.data);
     expect(res.data?.id).toBeDefined();
     userId = res.data!.id;
   });
@@ -28,6 +29,7 @@ describe("users integration", () => {
   it("gets a user by ID", async () => {
     const res = await aprimo.users.getById(userId);
     expectOk(res);
+    logShape("users.getById", res.data);
     expect(res.data?.id).toBe(userId);
   });
 
@@ -37,11 +39,13 @@ describe("users integration", () => {
     });
 
     expectOk(res);
+    logShape("users.update", res.data);
   });
 
   it("gets a page of users", async () => {
     const res = await aprimo.users.get({ pageSize: 5 });
     expectOk(res);
+    logShape("users.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -50,6 +54,7 @@ describe("users integration", () => {
 
     for await (const page of aprimo.users.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("users.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -60,12 +65,14 @@ describe("users integration", () => {
   it("gets permissions for a user", async () => {
     const res = await aprimo.users.getPermissions(userId);
     expectOk(res);
+    logShape("users.getPermissions", res.data);
     expect(res.data?.items).toBeDefined();
   });
 
   it("updates permissions for a user", async () => {
     const permsRes = await aprimo.users.getPermissions(userId);
     expectOk(permsRes);
+    logShape("users.getPermissions", permsRes.data);
 
     const permissionName = permsRes.data?.items?.[0]?.name;
     expect(permissionName).toBeDefined();
@@ -82,9 +89,11 @@ describe("users integration", () => {
     });
 
     expectOk(updateRes);
+    logShape("users.updatePermissions", updateRes.data);
 
     const verifyRes = await aprimo.users.getPermissions(userId);
     expectOk(verifyRes);
+    logShape("users.getPermissions:verify", verifyRes.data);
 
     const updatedPerm = verifyRes.data?.items?.find(
       (p) => p.name === permissionName,
@@ -95,5 +104,6 @@ describe("users integration", () => {
   it("deletes the user", async () => {
     const res = await aprimo.users.delete(userId);
     expectOk(res);
+    logShape("users.delete", res.data);
   });
 });

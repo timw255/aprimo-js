@@ -1,5 +1,21 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { ApiResult } from "./client";
+import {
+  AprimoBadRequestError,
+  AprimoCancelledError,
+  AprimoConflictError,
+  AprimoError,
+  AprimoForbiddenError,
+  AprimoHttpError,
+  AprimoHttpErrorOptions,
+  AprimoNetworkError,
+  AprimoNotFoundError,
+  AprimoRateLimitError,
+  AprimoServerError,
+  AprimoTimeoutError,
+  AprimoUnauthorizedError,
+  AprimoValidationError,
+} from "./errors";
 
 export interface HttpClientOptions {
   maxRetries?: number;
@@ -36,12 +52,15 @@ export class HttpClient {
     };
 
     const maxAttempts = (this.options.maxRetries ?? 0) + 1;
+    let lastError: unknown;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const response = await axios.request<T>(config);
         return { ok: true, status: response.status, data: response.data };
       } catch (error) {
+        lastError = error;
+
         const isRetryable =
           axios.isAxiosError(error) && error.response?.status === 429;
         const wantsRetry =
@@ -54,43 +73,15 @@ export class HttpClient {
       }
     }
 
-    return {
-      ok: false,
-      status: 500,
-      error: {
-        type: "UnknownError",
-        message: "Unexpected retry failure",
-        raw: null,
-      },
-    };
+    // Retry loop exited without returning — translate the last error we saw.
+    // (Previously this path returned an "UnknownError" envelope; if the loop
+    // exhausted retries on a 429, callers expect to see a rate-limit error.)
+    return this.handleAxiosError(lastError);
   }
 
   private handleAxiosError(error: unknown): ApiResult<never> {
-    if (axios.isAxiosError(error)) {
-      const status = error.response?.status ?? 500;
-      const data = error.response?.data;
-
-      return {
-        ok: false,
-        status,
-        error: {
-          type: data?.exceptionType ?? "HttpError",
-          message: data?.exceptionMessage ?? error.message,
-          raw: data,
-        },
-      };
-    }
-
-    return {
-      ok: false,
-      status: 500,
-      error: {
-        type: "UnknownError",
-        message:
-          error instanceof Error ? error.message : "An unknown error occurred",
-        raw: error,
-      },
-    };
+    const sdkError = translateAxiosError(error);
+    return { ok: false, status: deriveStatus(error, sdkError), error: sdkError };
   }
 
   get<T>(url: string, headers?: Record<string, string>) {
@@ -108,4 +99,95 @@ export class HttpClient {
   delete<T>(url: string, headers?: Record<string, string>) {
     return this.request<T>("DELETE", url, undefined, headers);
   }
+}
+
+/**
+ * Map an axios error (or any thrown value) to the most specific `AprimoError`
+ * subclass we can. Status-driven errors come back as `AprimoHttpError`
+ * subclasses; transport errors as `AprimoNetworkError` / `AprimoTimeoutError`
+ * / `AprimoCancelledError`; anything we can't classify as the base
+ * `AprimoError`.
+ */
+function translateAxiosError(error: unknown): AprimoError {
+  if (!axios.isAxiosError(error)) {
+    return new AprimoError(
+      error instanceof Error ? error.message : "An unknown error occurred",
+      "UnknownError",
+      { cause: error, raw: error },
+    );
+  }
+
+  const axiosError = error as AxiosError<{
+    exceptionType?: string;
+    exceptionMessage?: string;
+  }>;
+
+  // Cancellation (AbortSignal etc.) takes priority — axios sets ERR_CANCELED.
+  if (axios.isCancel(axiosError) || axiosError.code === "ERR_CANCELED") {
+    return new AprimoCancelledError(axiosError.message || "Request was cancelled", {
+      cause: axiosError,
+    });
+  }
+
+  // Timeout — axios sets ECONNABORTED for timeouts, ETIMEDOUT for some Node errors.
+  if (axiosError.code === "ECONNABORTED" || axiosError.code === "ETIMEDOUT") {
+    return new AprimoTimeoutError(axiosError.message || "Request timed out", {
+      cause: axiosError,
+    });
+  }
+
+  // Network failure — no response arrived (DNS, ECONNREFUSED, TLS, etc.).
+  if (!axiosError.response) {
+    return new AprimoNetworkError(
+      axiosError.message || "Network request failed",
+      { cause: axiosError },
+    );
+  }
+
+  const status = axiosError.response.status;
+  const data = axiosError.response.data;
+  const aprimoErrorCode = data?.exceptionType;
+  const message = data?.exceptionMessage ?? axiosError.message;
+
+  const opts: AprimoHttpErrorOptions = {
+    status,
+    aprimoErrorCode,
+    responseBody: data,
+    cause: axiosError,
+  };
+
+  if (status === 400) return new AprimoBadRequestError(message, opts);
+  if (status === 401) return new AprimoUnauthorizedError(message, opts);
+  if (status === 403) return new AprimoForbiddenError(message, opts);
+  if (status === 404) return new AprimoNotFoundError(message, opts);
+  if (status === 409) return new AprimoConflictError(message, opts);
+  if (status === 422) return new AprimoValidationError(message, opts);
+  if (status === 429) {
+    const retryAfter = extractRetryAfter(axiosError);
+    return new AprimoRateLimitError(message, { ...opts, retryAfter });
+  }
+  if (status >= 500 && status < 600) return new AprimoServerError(message, opts);
+
+  // Other 4xx (or anything else with a response) — generic HTTP error.
+  return new AprimoHttpError(message, opts);
+}
+
+function deriveStatus(error: unknown, sdkError: AprimoError): number {
+  if (sdkError instanceof AprimoHttpError) return sdkError.status;
+  if (axios.isAxiosError(error) && error.response?.status) {
+    return error.response.status;
+  }
+  // Cancelled requests: preserve the SDK's pre-existing 499 convention.
+  if (sdkError instanceof AprimoCancelledError) return 499;
+  return 500;
+}
+
+function extractRetryAfter(error: AxiosError): string | undefined {
+  const headers = error.response?.headers as
+    | Record<string, string | string[] | undefined>
+    | undefined;
+  if (!headers) return undefined;
+  const value = headers["retry-after"] ?? headers["Retry-After"];
+  if (Array.isArray(value)) return value[0];
+  return value;
 }

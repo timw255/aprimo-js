@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -44,6 +44,7 @@ describe("rules integration", () => {
     });
 
     expectOk(res);
+    logShape("rules.create", res.data);
     expect(res.data?.id).toBeDefined();
     ruleId = res.data!.id;
   });
@@ -51,6 +52,7 @@ describe("rules integration", () => {
   it("fetches a list of rules", async () => {
     const res = await aprimo.rules.get({ pageSize: 5 });
     expectOk(res);
+    logShape("rules.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -59,6 +61,7 @@ describe("rules integration", () => {
 
     for await (const page of aprimo.rules.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("rules.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -69,17 +72,20 @@ describe("rules integration", () => {
   it("reads the rule", async () => {
     const res = await aprimo.rules.getById(ruleId);
     expectOk(res);
+    logShape("rules.getById", res.data);
     expect(res.data?.id).toBe(ruleId);
   });
 
   it("updates the rule", async () => {
     const res = await aprimo.rules.update(ruleId, { enabled: false });
     expectOk(res);
+    logShape("rules.update", res.data);
     expect(res.status).toBe(204);
   });
 
   it("deletes the rule", async () => {
     const res = await aprimo.rules.delete(ruleId);
     expectOk(res);
+    logShape("rules.delete", res.data);
   });
 });

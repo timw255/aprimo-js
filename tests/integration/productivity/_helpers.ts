@@ -73,12 +73,7 @@ export function getTenantDefaults(aprimo: Aprimo): Promise<TenantDefaults> {
   return defaultsPromise;
 }
 
-const VERBOSE = process.env.APRIMO_PM_TEST_VERBOSE === "1";
-
-export function logShape(label: string, data: unknown): void {
-  if (!VERBOSE) return;
-  console.log(`\n--- ${label} ---\n${JSON.stringify(data, null, 2)}\n`);
-}
+export { logShape } from "../../utils";
 
 export function pickFirstId<TId extends number | string>(
   res: ApiResult<{ _embedded?: Record<string, unknown> }>,

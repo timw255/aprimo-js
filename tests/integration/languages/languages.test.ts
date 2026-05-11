@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -29,6 +29,7 @@ describe("languages integration", () => {
       isEnabledForUI: false,
     });
     expectOk(res);
+    logShape("languages.create", res.data);
     expect(res.data?.id).toBeDefined();
     languageId = res.data!.id;
   });
@@ -36,6 +37,7 @@ describe("languages integration", () => {
   it("reads the created language", async () => {
     const res = await aprimo.languages.getById(languageId);
     expectOk(res);
+    logShape("languages.getById", res.data);
     expect(res.data?.id).toBe(languageId);
   });
 
@@ -44,12 +46,14 @@ describe("languages integration", () => {
       isEnabledForFields: true,
     });
     expectOk(res);
+    logShape("languages.update", res.data);
     expect(res.status).toBe(204);
   });
 
   it("gets a list of languages", async () => {
     const res = await aprimo.languages.get({ pageSize: 5 });
     expectOk(res);
+    logShape("languages.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -57,6 +61,7 @@ describe("languages integration", () => {
     let count = 0;
     for await (const page of aprimo.languages.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("languages.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 2) break;
     }
@@ -66,6 +71,7 @@ describe("languages integration", () => {
   it("deletes the test language", async () => {
     const res = await aprimo.languages.delete(languageId);
     expectOk(res);
+    logShape("languages.delete", res.data);
     expect(res.status).toBe(204);
   });
 });

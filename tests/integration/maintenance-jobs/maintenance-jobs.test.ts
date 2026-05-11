@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -14,6 +14,7 @@ describe("maintenanceJobs integration", () => {
     const res = await aprimo.maintenanceJobs.get({ pageSize: 10 });
 
     expectOk(res);
+    logShape("maintenanceJobs.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 });

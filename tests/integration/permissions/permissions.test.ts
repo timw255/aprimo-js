@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -14,17 +14,20 @@ describe("permissions integration", () => {
     const res = await aprimo.permissions.get({ pageSize: 10 });
 
     expectOk(res);
+    logShape("permissions.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThanOrEqual(0);
   });
 
   it("gets the calculated value of a permission", async () => {
     const listRes = await aprimo.permissions.get({ pageSize: 1 });
     expectOk(listRes);
+    logShape("permissions.get", listRes.data);
     const permissionName = listRes.data?.items?.[0]?.name;
     expect(permissionName).toBeDefined();
 
     const res = await aprimo.permissions.getCalculated(permissionName!);
     expectOk(res);
+    logShape("permissions.getCalculated", res.data);
     expect(res.data?.name).toBeDefined();
     expect(res.data?.value).toBeDefined();
   });

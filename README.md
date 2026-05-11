@@ -331,25 +331,35 @@ if (!res.ok && res.error?.type === "AbortError") {
 
 ### Error Handling
 
-Failures during upload (e.g., segment or commit failure) return meaningful error types:
+Failures during upload (cancel, setup, segment, or commit) come back as typed
+error instances on `res.error`. Use `instanceof` to narrow:
 
 ```ts
+import {
+  AprimoCancelledError,
+  AprimoUploadSetupError,
+  AprimoUploadSegmentError,
+  AprimoUploadCommitError,
+} from "aprimo-js";
+
 if (!res.ok) {
-  switch (res.error?.type) {
-    case "UploadSetupFailed":
-      console.error("Could not set up upload session.");
-      break;
-    case "UploadSegmentFailed":
-      console.error("A segment failed to upload.");
-      break;
-    case "UploadCommitFailed":
-      console.error("Upload succeeded, but commit failed.");
-      break;
-    default:
-      console.error("Unknown upload error:", res.error?.message);
+  if (res.error instanceof AprimoCancelledError) {
+    console.warn("Upload was cancelled.");
+  } else if (res.error instanceof AprimoUploadSetupError) {
+    console.error("Could not set up upload session.");
+  } else if (res.error instanceof AprimoUploadSegmentError) {
+    console.error(`Segment ${res.error.segmentIndex} failed.`);
+  } else if (res.error instanceof AprimoUploadCommitError) {
+    console.error("All segments uploaded, but commit failed.");
+  } else {
+    console.error("Unknown upload error:", res.error?.message);
   }
 }
 ```
+
+The legacy `error.type` string switch (`"AbortError"`, `"UploadSetupFailed"`,
+`"UploadSegmentFailed"`, `"UploadCommitFailed"`) still works — every typed
+error carries its category string for backward compatibility.
 
 ### Example
 
@@ -379,21 +389,16 @@ const res = await aprimo.uploader.uploadFile(file, {
 });
 
 if (!res.ok) {
-  switch (res.error?.type) {
-    case "AbortError":
-      console.warn("Upload was cancelled by the user.");
-      break;
-    case "UploadSetupFailed":
-      console.error("Could not set up the upload.");
-      break;
-    case "UploadSegmentFailed":
-      console.error("A segment failed to upload.");
-      break;
-    case "UploadCommitFailed":
-      console.error("Commit failed after segments uploaded.");
-      break;
-    default:
-      console.error("Unknown error:", res.error?.message);
+  if (res.error instanceof AprimoCancelledError) {
+    console.warn("Upload was cancelled by the user.");
+  } else if (res.error instanceof AprimoUploadSetupError) {
+    console.error("Could not set up the upload.");
+  } else if (res.error instanceof AprimoUploadSegmentError) {
+    console.error(`Segment ${res.error.segmentIndex} failed to upload.`);
+  } else if (res.error instanceof AprimoUploadCommitError) {
+    console.error("Commit failed after segments uploaded.");
+  } else {
+    console.error("Unknown error:", res.error?.message);
   }
 } else {
   console.log("Upload successful! Upload token:", res.data?.token);
@@ -401,42 +406,72 @@ if (!res.ok) {
 ```
 
 ## Understanding `ApiResult<T>`
- 
-API calls returns an `ApiResult<T>` object to help you handle success and error cases consistently.
- 
+
+API calls return an `ApiResult<T>` object so success and error cases are handled
+through one consistent shape.
+
 ```ts
 type ApiResult<T> = {
   ok: boolean;
   status: number;
   data?: T;
-  error?: {
-    type?: string;
-    message?: string;
-    raw?: unknown;
-  };
+  error?: AprimoError;
 };
 ```
- 
+
 ### Fields:
 
-| Field   | Type     | Description                                                              |
-|---------|----------|--------------------------------------------------------------------------|
-| `ok`    | boolean  | Indicates if the request was successful (`true` for 2xx responses)       |
-| `status`| number   | The HTTP status code returned by the API                                 |
-| `data`  | `T`      | The deserialized response body (only present if successful)              |
-| `error` | object   | Contains error info when `ok` is `false`, with `type`, `message`, `raw`  |
+| Field   | Type            | Description                                                            |
+|---------|-----------------|------------------------------------------------------------------------|
+| `ok`    | `boolean`       | `true` for 2xx responses                                               |
+| `status`| `number`        | HTTP status code                                                       |
+| `data`  | `T`             | Deserialized response body (only present on success)                   |
+| `error` | `AprimoError`   | An `Error` subclass instance — narrow with `instanceof`                |
 
-### Example Usage:
+### Typed errors
+
+`error` is an instance of `AprimoError` or one of its subclasses. The hierarchy:
+
+- **HTTP family** (status-driven): `AprimoBadRequestError` (400), `AprimoUnauthorizedError` (401), `AprimoForbiddenError` (403), `AprimoNotFoundError` (404), `AprimoConflictError` (409), `AprimoValidationError` (422), `AprimoRateLimitError` (429, with `retryAfter`), `AprimoServerError` (5xx), and the catch-all `AprimoHttpError` for anything else.
+- **Transport**: `AprimoNetworkError`, `AprimoTimeoutError`, `AprimoCancelledError`.
+- **Auth**: `AprimoAuthError`, `AprimoAuthCredentialsError`, `AprimoAuthConfigError`.
+- **Upload**: `AprimoUploadError`, `AprimoUploadSetupError`, `AprimoUploadSegmentError` (with `segmentIndex`), `AprimoUploadCommitError`.
+- **Programmer/config**: `AprimoConfigError`.
 
 ```ts
+import {
+  AprimoNotFoundError,
+  AprimoRateLimitError,
+  AprimoUnauthorizedError,
+} from "aprimo-js";
+
 const result = await aprimo.records.getById(id);
 
 if (!result.ok) {
-  console.error("Request failed:", result.error?.message);
+  if (result.error instanceof AprimoNotFoundError) {
+    console.warn("No such record.");
+  } else if (result.error instanceof AprimoRateLimitError) {
+    console.warn(`Throttled — retry after ${result.error.retryAfter ?? "?"}s`);
+  } else if (result.error instanceof AprimoUnauthorizedError) {
+    console.error("Token rejected.");
+  } else {
+    console.error("Request failed:", result.error?.message);
+  }
 } else {
   console.log("Record id:", result.data?.id);
 }
 ```
+
+Type guards (`isAprimoError`, `isAprimoHttpError`, `isAprimoRateLimitError`,
+etc.) are also exported if you'd rather not use `instanceof`.
+
+### Legacy `error.type` strings
+
+For backward compatibility with older consumer code, every typed error
+instance still carries `error.type` (a stable category string), `error.message`,
+and `error.raw` (the underlying response body or original error). A
+`switch (error.type)` against the documented strings (`"NotFound"`,
+`"RateLimit"`, `"AbortError"`, `"UploadSetupFailed"`, etc.) still works.
 
 ## 429 Rate Limit Handling
 

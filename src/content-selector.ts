@@ -1,5 +1,7 @@
 /// <reference lib="dom" />
 
+import { AprimoConfigError } from "./errors";
+
 export interface Selection {
   id: string;
   title: string;
@@ -36,7 +38,7 @@ export const contentSelector = (environment: string) => ({
     callback: (result: ContentSelectorResult) => void,
   ) => {
     if (typeof window === "undefined") {
-      throw new Error(
+      throw new AprimoConfigError(
         "Aprimo Content Selector is only available in the browser.",
       );
     }

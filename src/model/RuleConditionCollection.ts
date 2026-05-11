@@ -21,6 +21,11 @@ import { RecordStatusChangedToRuleCondition } from "./RecordStatusChangedToRuleC
 import { RecordStatusIsRuleCondition } from "./RecordStatusIsRuleCondition";
 import { ReferenceRuleCondition } from "./ReferenceRuleCondition";
 
+/**
+ * Polymorphic union of rule condition types, discriminated by `conditionType`.
+ * The spec defines each condition type as a separate schema sharing the
+ * `conditionType` discriminator enum.
+ */
 export type RuleCondition =
   | ClassificationLinkedRuleCondition
   | ClassificationUnlinkedRuleCondition
@@ -44,11 +49,20 @@ export type RuleCondition =
   | RecordStatusIsRuleCondition
   | ReferenceRuleCondition;
 
+/**
+ * Representation of a collection of rule conditions (polymorphic).
+ */
 export interface RuleConditionCollection {
+  /** A collection of rule condition items (various condition types like ClassifiedInRuleCondition, ObjectCreatedRuleCondition, etc.). */
   items: RuleCondition[];
+  /** HAL `_links` block (SDK addition; not declared in spec). */
   _links: RuleConditionCollectionLinks;
 }
 
+/**
+ * HAL `_links` block for a {@link RuleConditionCollection}.
+ */
 export interface RuleConditionCollectionLinks {
+  /** Self link to this collection. */
   self: ApiLink;
 }

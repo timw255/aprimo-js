@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { CreateSingleLineTextFieldDefinitionRequest } from "../../../src/modules/field-definitions";
 import { createClient } from "../../../src";
 
@@ -52,6 +52,7 @@ describe("fieldDefinitions integration", () => {
 
     const res = await aprimo.fieldDefinitions.create(request);
     expectOk(res);
+    logShape("fieldDefinitions.create", res.data);
     expect(res.data?.id).toBeDefined();
     id = res.data!.id;
   });
@@ -59,6 +60,7 @@ describe("fieldDefinitions integration", () => {
   it("reads the field definition by id", async () => {
     const res = await aprimo.fieldDefinitions.getById(id);
     expectOk(res);
+    logShape("fieldDefinitions.getById", res.data);
     expect(res.data?.id).toBe(id);
   });
 
@@ -68,6 +70,7 @@ describe("fieldDefinitions integration", () => {
     });
 
     expectOk(res);
+    logShape("fieldDefinitions.update", res.data);
   });
 
   it("updates multilingual labels", async () => {
@@ -83,9 +86,11 @@ describe("fieldDefinitions integration", () => {
     });
 
     expectOk(updateRes);
+    logShape("fieldDefinitions.update:labels", updateRes.data);
 
     const getRes = await aprimo.fieldDefinitions.getById(id, undefined, "*");
     expectOk(getRes);
+    logShape("fieldDefinitions.getById:expanded", getRes.data);
 
     const updatedLabel = getRes.data?.labels?.find(
       (l) => l.languageId === languageId,
@@ -96,6 +101,7 @@ describe("fieldDefinitions integration", () => {
   it("lists field definitions", async () => {
     const res = await aprimo.fieldDefinitions.get({ pageSize: 5 });
     expectOk(res);
+    logShape("fieldDefinitions.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -106,6 +112,7 @@ describe("fieldDefinitions integration", () => {
       pageSize: 2,
     })) {
       expectOk(page);
+      logShape("fieldDefinitions.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -116,5 +123,6 @@ describe("fieldDefinitions integration", () => {
   it("deletes the field definition", async () => {
     const res = await aprimo.fieldDefinitions.delete(id);
     expectOk(res);
+    logShape("fieldDefinitions.delete", res.data);
   });
 });

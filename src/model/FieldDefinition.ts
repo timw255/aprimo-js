@@ -18,6 +18,21 @@ import { TimeFieldDefinition } from "./TimeFieldDefinition";
 import { UserGroupListFieldDefinition } from "./UserGroupListFieldDefinition";
 import { UserListFieldDefinition } from "./UserListFieldDefinition";
 
+/**
+ * Definition of a metadata field that can be attached to records, files, classifications, or users.
+ * Field definitions specify the data type, validation rules, and behavior of metadata fields.
+ *
+ * This is a discriminated union over the `dataType` field. The spec lower-cases the
+ * discriminator values: `singlelinetext`, `multilinetext`, `numeric`, `datetime`, `date`,
+ * `time`, `optionlist`, `duration`, `userlist`, `usergrouplist`, `html`, `json`,
+ * `classificationlist`, `recordlist`, `recordlink`, `languagelist`, `textlist`,
+ * `hyperlinklist` (plus `none`).
+ *
+ * Available select options (for HAL embedding / header `select-fielddefinition`):
+ * - `createdby` — User who created this field definition
+ * - `modifiedby` — User who last modified this field definition
+ * - `Tag` — Custom XML tag data
+ */
 export type FieldDefinition =
   | SingleLineTextFieldDefinition
   | MultiLineTextFieldDefinition

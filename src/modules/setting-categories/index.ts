@@ -10,6 +10,15 @@ import { buildHeaders } from "../../utils";
 export type CreateSettingCategoryRequest = CreateFrom<SettingCategory>;
 
 export const settingCategories = (client: HttpClient) => ({
+  /**
+   * List setting categories. Returns one page; use `getPaged` for full
+   * traversal, or `getById` for a single item.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.settingCategories.get();
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -19,6 +28,21 @@ export const settingCategories = (client: HttpClient) => ({
     return client.get("/api/core/settingcategories", headers);
   },
 
+  /**
+   * Async generator yielding pages of setting categories. Wraps `get` and
+   * follows `_links.next` until exhausted.
+   *
+   * @example
+   * ```ts
+   * const all: SettingCategory[] = [];
+   *
+   * for await (const pageResult of aprimo.settingCategories.getPaged({ pageSize: 1000 })) {
+   *   all.push(...(pageResult.data?.items ?? []));
+   * }
+   *
+   * console.log("Setting category count:", all.length);
+   * ```
+   */
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
@@ -44,6 +68,10 @@ export const settingCategories = (client: HttpClient) => ({
     }
   },
 
+  /**
+   * Fetch a single setting category by id. Failure (e.g., not found) surfaces
+   * as `ok: false` with the HTTP status on `ApiResult`.
+   */
   getById: async (
     id: string,
     expander?: Expander,
@@ -53,12 +81,18 @@ export const settingCategories = (client: HttpClient) => ({
     return client.get(`/api/core/settingcategory/${id}`, headers);
   },
 
+  /**
+   * Create a setting category.
+   */
   create: async (
     request: CreateSettingCategoryRequest,
   ): Promise<ApiResult<SettingCategory>> => {
     return client.post("/api/core/settingcategories", request);
   },
 
+  /**
+   * Permanently delete a setting category.
+   */
   delete: async (id: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/settingcategory/${id}`);
   },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -24,6 +24,7 @@ describe("settingCategories integration", () => {
     });
 
     expectOk(res);
+    logShape("settingCategories.create", res.data);
     expect(res.data?.id).toBeDefined();
     id = res.data!.id;
   });
@@ -31,12 +32,14 @@ describe("settingCategories integration", () => {
   it("reads the setting category", async () => {
     const res = await aprimo.settingCategories.getById(id);
     expectOk(res);
+    logShape("settingCategories.getById", res.data);
     expect(res.data?.id).toBeDefined();
   });
 
   it("fetches a list of setting categories", async () => {
     const res = await aprimo.settingCategories.get({ pageSize: 5 });
     expectOk(res);
+    logShape("settingCategories.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -47,6 +50,7 @@ describe("settingCategories integration", () => {
       pageSize: 2,
     })) {
       expectOk(page);
+      logShape("settingCategories.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -57,5 +61,6 @@ describe("settingCategories integration", () => {
   it("deletes the setting category", async () => {
     const res = await aprimo.settingCategories.delete(id);
     expectOk(res);
+    logShape("settingCategories.delete", res.data);
   });
 });

@@ -1,4 +1,8 @@
 import { ApiResult } from "../../../client";
+import {
+  AprimoCancelledError,
+  AprimoUploadSegmentError,
+} from "../../../errors";
 import { HttpClient } from "../../../http";
 import { buildQueryString } from "../../../utils";
 
@@ -80,7 +84,7 @@ export const uploader = (client: HttpClient) => ({
           resolve({
             ok: false,
             status: 499,
-            error: { type: "AbortError", message: "Upload cancelled before start" },
+            error: new AprimoCancelledError("Upload cancelled before start"),
           });
           return;
         }
@@ -90,7 +94,7 @@ export const uploader = (client: HttpClient) => ({
           resolve({
             ok: false,
             status: 499,
-            error: { type: "AbortError", message: "Upload was cancelled" },
+            error: new AprimoCancelledError("Upload was cancelled"),
           });
         };
         signal?.addEventListener("abort", onAbort);
@@ -123,11 +127,10 @@ export const uploader = (client: HttpClient) => ({
             resolve({
               ok: false,
               status: res.status,
-              error: {
-                type: "ChunkUploadFailed",
-                message: `Chunk ${index + 1} failed`,
-                raw: res,
-              },
+              error: new AprimoUploadSegmentError(
+                `Chunk ${index + 1} failed`,
+                { segmentIndex: index, cause: res.error, raw: res },
+              ),
             });
             return;
           }

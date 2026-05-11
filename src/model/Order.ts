@@ -9,6 +9,12 @@ import { FtpResortOrder } from "./FtpResortOrder";
 import { PublicCdnOrder } from "./PublicCdnOrder";
 import { ShareDownloadLinkOrder } from "./ShareDownloadLinkOrder";
 
+/**
+ * Discriminated union of every order representation returned by the DAM
+ * orders API (download, email, FTP, CDN, brand template, share-link, etc.).
+ * The concrete shape is identified by the `orderType`/`type` discriminator
+ * on each variant.
+ */
 export type Order =
   | AkamaiCdnOrder
   | BrandTemplateOrder

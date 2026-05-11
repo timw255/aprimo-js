@@ -303,6 +303,15 @@ export type UpdateFieldDefinitionRequest =
   | UpdateHyperlinkListFieldDefinitionRequest;
 
 export const fieldDefinitions = (client: HttpClient) => ({
+  /**
+   * List field definitions (the metadata schema). Returns one page; use
+   * `getPaged` for full traversal, or `getById` for a single item.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.fieldDefinitions.get({ pageSize: 200 });
+   * ```
+   */
   get: async (
     params?: QueryParams,
     expander?: Expander,
@@ -317,6 +326,15 @@ export const fieldDefinitions = (client: HttpClient) => ({
     return client.get("/api/core/fielddefinitions", headers);
   },
 
+  /**
+   * Fetch a single field definition by id. Failure (e.g., not found) surfaces
+   * as `ok: false` with the HTTP status on `ApiResult`.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.fieldDefinitions.getById(fieldDefId);
+   * ```
+   */
   getById: async (
     id: string,
     expander?: Expander,
@@ -331,6 +349,21 @@ export const fieldDefinitions = (client: HttpClient) => ({
     return client.get(`/api/core/fielddefinition/${id}`, headers);
   },
 
+  /**
+   * Async generator yielding pages of field definitions until exhausted.
+   * Wraps `get` and follows `_links.next` automatically.
+   *
+   * @example
+   * ```ts
+   * const all: FieldDefinition[] = [];
+   *
+   * for await (const pageResult of aprimo.fieldDefinitions.getPaged({ pageSize: 1000 })) {
+   *   all.push(...(pageResult.data?.items ?? []));
+   * }
+   *
+   * console.log("Field definition count:", all.length);
+   * ```
+   */
   getPaged: async function* (
     params: QueryParams = {},
     expander?: Expander,
@@ -358,12 +391,35 @@ export const fieldDefinitions = (client: HttpClient) => ({
     }
   },
 
+  /**
+   * Create a field definition. The request shape is a discriminated union
+   * over field types — pass the specific request type matching the field
+   * type you want (e.g. `CreateSingleLineTextFieldDefinitionRequest`).
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.fieldDefinitions.create({
+   *   dataType: "SingleLineText",
+   *   name: "MyField",
+   *   labels: [{ languageId: "<lang-id>", value: "My field" }],
+   * });
+   * ```
+   */
   create: async (
     request: CreateFieldDefinitionRequest,
   ): Promise<ApiResult<FieldDefinition>> => {
     return client.post("/api/core/fielddefinitions", request);
   },
 
+  /**
+   * Update a field definition. Note: `dataType`, `aiEnabled`, and `languageMode`
+   * cannot be changed after creation.
+   *
+   * @example
+   * ```ts
+   * await aprimo.fieldDefinitions.update(id, { name: "RenamedField" });
+   * ```
+   */
   update: async (
     id: string,
     request: UpdateFieldDefinitionRequest,
@@ -371,6 +427,14 @@ export const fieldDefinitions = (client: HttpClient) => ({
     return client.put(`/api/core/fielddefinition/${id}`, request);
   },
 
+  /**
+   * Permanently delete a field definition.
+   *
+   * @example
+   * ```ts
+   * await aprimo.fieldDefinitions.delete(id);
+   * ```
+   */
   delete: async (id: string): Promise<ApiResult<void>> => {
     return client.delete(`/api/core/fielddefinition/${id}`);
   },

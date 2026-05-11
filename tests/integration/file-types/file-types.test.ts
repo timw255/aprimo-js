@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -34,6 +34,7 @@ describe("fileTypes integration", () => {
     });
 
     expectOk(res);
+    logShape("fileTypes.create", res.data);
     expect(res.data?.id).toBeDefined();
     id = String(res.data!.id);
   });
@@ -41,6 +42,7 @@ describe("fileTypes integration", () => {
   it("fetches the file type by ID", async () => {
     const res = await aprimo.fileTypes.getById(id);
     expectOk(res);
+    logShape("fileTypes.getById", res.data);
     expect(res.data?.id).toBe(id);
   });
 
@@ -57,11 +59,13 @@ describe("fileTypes integration", () => {
     });
 
     expectOk(res);
+    logShape("fileTypes.update", res.data);
   });
 
   it("fetches a list of file types", async () => {
     const res = await aprimo.fileTypes.get({ pageSize: 5 });
     expectOk(res);
+    logShape("fileTypes.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -70,6 +74,7 @@ describe("fileTypes integration", () => {
 
     for await (const page of aprimo.fileTypes.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("fileTypes.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -80,5 +85,6 @@ describe("fileTypes integration", () => {
   it("deletes the file type", async () => {
     const res = await aprimo.fileTypes.delete(id);
     expectOk(res);
+    logShape("fileTypes.delete", res.data);
   });
 });

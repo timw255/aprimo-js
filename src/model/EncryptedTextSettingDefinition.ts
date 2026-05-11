@@ -1,22 +1,54 @@
 import { ApiLink } from "./ApiLink";
+import { UserGroupSettingMode } from "./SettingDefinition";
 import { User } from "./User";
 
+/**
+ * Representation of a TextSettingDefinition resource (per spec description; the
+ * dedicated EncryptedText variant). The EncryptedText variant of
+ * {@link SettingDefinition}; `dataType` is `"encryptedtext"` and values are
+ * stored encrypted at rest.
+ */
 export interface EncryptedTextSettingDefinition {
+  /** Shows it the setting allows a system setting. */
   allowSystemSetting: boolean;
+  /** Shows it the setting allows a user setting. */
   allowUserSetting: boolean;
+  /** Gets the category Id for the setting definition. */
   categoryId: string;
+  /** Gets the creation datetime in UTC time. Format: date-time. */
   createdOn: string;
-  dataType: string;
+  /**
+   * Gets the data type of this setting. Discriminant; `"EncryptedText"` for this variant.
+   */
+  dataType: "EncryptedText";
+  /** Gets a default value of the setting. */
   defaultValue: string;
+  /** Gets a help url for the setting definition. */
   helpUrl: string;
+  /** Gets the Id of the setting definition. */
   id: string;
+  /** Collection of localized labels for this setting definition. */
   labels: string[];
+  /** Gets the last modification datetime in UTC time. Format: date-time. */
   modifiedOn: string;
+  /** Gets the name of the setting definition. */
   name: string;
+  /** Gets the regular expression that the setting value should match. */
   regularExpression: string;
+  /** Gets the role that needs to be changed. */
   roleRequiredForChange: string;
+  /**
+   * Gets a tag for this setting containing extra information. This property
+   * will not be returned by default. In order to include the property in the
+   * response, add a header with the name
+   * 'select-encryptedtextsettingdefinition' and the value 'Tag' to your
+   * request.
+   */
   tag: string;
-  userGroupSettingMode: string;
+  /**
+   * Gets a UserGroupSettingMode for the setting definition.
+   */
+  userGroupSettingMode: UserGroupSettingMode;
   _links: EncryptedTextSettingDefinitionLinks;
   _embedded?: {
     [K in Exclude<

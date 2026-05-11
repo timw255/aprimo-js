@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -28,6 +28,7 @@ describe("classifications integration", () => {
       true,
     );
     expectOk(res);
+    logShape("classifications.create", res.data);
     expect(res.data?.id).toBeDefined();
     classificationId = res.data!.id;
   });
@@ -35,6 +36,7 @@ describe("classifications integration", () => {
   it("gets a list of classifications", async () => {
     const res = await aprimo.classifications.get({ pageSize: 5 });
     expectOk(res);
+    logShape("classifications.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -42,6 +44,7 @@ describe("classifications integration", () => {
     let count = 0;
     for await (const page of aprimo.classifications.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("classifications.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 4) break;
     }
@@ -51,6 +54,7 @@ describe("classifications integration", () => {
   it("gets the classification by id", async () => {
     const res = await aprimo.classifications.getById(classificationId);
     expectOk(res);
+    logShape("classifications.getById", res.data);
     expect(res.data?.id).toBe(classificationId);
   });
 
@@ -59,11 +63,13 @@ describe("classifications integration", () => {
       sortIndex: 2,
     });
     expectOk(res);
+    logShape("classifications.update", res.data);
   });
 
   it("gets the user's tree permission for the classification", async () => {
     const res = await aprimo.classifications.getTreePermission(classificationId);
     expectOk(res);
+    logShape("classifications.getTreePermission", res.data);
     expect(res.data?.canRead).toBeDefined();
   });
 
@@ -78,6 +84,7 @@ describe("classifications integration", () => {
       },
     );
     expectOk(res);
+    logShape("classifications.updateRecordPermissions", res.data);
   });
 
   it("updates tree permissions", async () => {
@@ -91,6 +98,7 @@ describe("classifications integration", () => {
       },
     );
     expectOk(res);
+    logShape("classifications.updateTreePermissions", res.data);
   });
 
   it("updates download permissions", async () => {
@@ -104,10 +112,12 @@ describe("classifications integration", () => {
       },
     );
     expectOk(res);
+    logShape("classifications.updateDownloadPermissions", res.data);
   });
 
   it("deletes the classification", async () => {
     const res = await aprimo.classifications.delete(classificationId);
     expectOk(res);
+    logShape("classifications.delete", res.data);
   });
 });

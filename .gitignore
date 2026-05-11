@@ -33,3 +33,7 @@ pnpm-debug.log*
 # OS junk
 .DS_Store
 Thumbs.db
+
+# scripts
+scripts/
+!scripts/generate-model-barrel.js

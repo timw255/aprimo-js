@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { AprimoAuthCredentialsError, AprimoAuthError } from "../errors";
 
 const FALLBACK_TOKEN_TTL_MS = 9 * 60 * 1000;
 const TOKEN_REFRESH_SKEW_MS = 30 * 1000;
@@ -70,13 +71,15 @@ export async function getClientCredentialsToken(
     return response.data.access_token;
   } catch (error) {
     if (error instanceof AxiosError) {
-      throw new Error(
+      throw new AprimoAuthCredentialsError(
         `Client credentials auth failed: ${error.response?.status} ${error.response?.statusText}`,
+        { status: error.response?.status, cause: error },
       );
     }
 
-    throw new Error(
+    throw new AprimoAuthError(
       "Unexpected error during client credentials authentication",
+      { cause: error },
     );
   }
 }
@@ -105,11 +108,14 @@ export async function getPasswordToken(
     return response.data.access_token;
   } catch (error) {
     if (error instanceof AxiosError) {
-      throw new Error(
+      throw new AprimoAuthCredentialsError(
         `Password flow auth failed: ${error.response?.status} ${error.response?.statusText}`,
+        { status: error.response?.status, cause: error },
       );
     }
 
-    throw new Error("Unexpected error during password authentication");
+    throw new AprimoAuthError("Unexpected error during password authentication", {
+      cause: error,
+    });
   }
 }

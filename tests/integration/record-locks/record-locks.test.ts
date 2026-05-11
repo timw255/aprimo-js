@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 
 const aprimo = createClient({
   environment: process.env.APRIMO_ENVIRONMENT!,
@@ -18,6 +18,7 @@ describe("recordLocks integration", () => {
     const res = await aprimo.recordLocks.getforRecord(recordId);
 
     expectOk(res);
+    logShape("recordLocks.getforRecord", res.data);
     expect(res.data).toBeDefined();
   });
 });

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 
 const aprimo = createClient({
   environment: process.env.APRIMO_ENVIRONMENT!,
@@ -21,6 +21,7 @@ describe("translations integration", () => {
     });
 
     expectOk(res);
+    logShape("translations.create", res.data);
     expect(res.data?.id).toBeDefined();
     id = res.data!.id;
   });
@@ -28,6 +29,7 @@ describe("translations integration", () => {
   it("fetches translations", async () => {
     const res = await aprimo.translations.get({ pageSize: 5 });
     expectOk(res);
+    logShape("translations.get", res.data);
     expect(res.data?.items?.length).toBeGreaterThan(0);
   });
 
@@ -36,6 +38,7 @@ describe("translations integration", () => {
 
     for await (const page of aprimo.translations.getPaged({ pageSize: 2 })) {
       expectOk(page);
+      logShape("translations.getPaged:page", page.data);
       count += page.data?.items?.length ?? 0;
       if (count >= 5) break;
     }
@@ -50,6 +53,7 @@ describe("translations integration", () => {
 
     const res = await aprimo.translations.getById(id);
     expectOk(res);
+    logShape("translations.getById", res.data);
     expect(res.data?.id).toBe(id);
   });
 
@@ -63,6 +67,7 @@ describe("translations integration", () => {
     });
 
     expectOk(res);
+    logShape("translations.update", res.data);
   });
 
   it("deletes a translation", async () => {
@@ -72,5 +77,6 @@ describe("translations integration", () => {
 
     const res = await aprimo.translations.delete(id);
     expectOk(res);
+    logShape("translations.delete", res.data);
   });
 });

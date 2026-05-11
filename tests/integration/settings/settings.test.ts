@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
-import { expectOk } from "../../utils";
+import { expectOk, logShape } from "../../utils";
 
 const aprimo = createClient({
   environment: process.env.APRIMO_ENVIRONMENT!,
@@ -16,6 +16,7 @@ describe("settings integration", () => {
   it("gets a single setting", async () => {
     const res = await aprimo.settings.getByName(TEST_SETTING);
     expectOk(res);
+    logShape("settings.getByName", res.data);
 
     expect(res.data?.name).toBe(TEST_SETTING);
     expect(res.data?.value).toBeDefined();
@@ -24,6 +25,7 @@ describe("settings integration", () => {
   it("gets multiple settings", async () => {
     const res = await aprimo.settings.getByName([TEST_SETTING, SECOND_SETTING]);
     expectOk(res);
+    logShape("settings.getByName:multiple", res.data);
 
     const names = res.data?.items.map((s) => s.name);
     expect(names).toContain(TEST_SETTING);
@@ -33,6 +35,7 @@ describe("settings integration", () => {
   it("gets a scoped setting (user)", async () => {
     const res = await aprimo.settings.getByName(TEST_SETTING, "system");
     expectOk(res);
+    logShape("settings.getByName:scoped", res.data);
 
     expect(res.data?.name).toBe(TEST_SETTING);
   });
@@ -50,6 +53,7 @@ describe("settings integration", () => {
   it("updates a setting with its current value", async () => {
     const getRes = await aprimo.settings.getByName(TEST_SETTING, "system");
     expectOk(getRes);
+    logShape("settings.getByName:system", getRes.data);
 
     const currentValue = getRes.data?.value as string;
     expect(currentValue).toBeDefined();
@@ -61,5 +65,6 @@ describe("settings integration", () => {
     });
 
     expectOk(updateRes);
+    logShape("settings.update", updateRes.data);
   });
 });
