@@ -19,6 +19,8 @@ import { buildHeaders } from "../../utils";
 export interface CreateRecordRequest {
   /** Lifecycle status the record is created in. Defaults to API tenant default. */
   status?: "draft" | "released" | "archived";
+  /** Content type name (e.g. `"Asset"`) the new record is stamped with. */
+  contentType?: string;
   /** Field values keyed by field id. Use `computeSetActions` to generate this. */
   fields?: SetActions<Field>;
   /** Classifications to attach by id. */
@@ -224,6 +226,7 @@ export const records = (client: HttpClient) => ({
    *
    * const res = await aprimo.records.create({
    *   status: "draft",
+   *   contentType: "Asset",
    *   files: {
    *     master: token,
    *     addOrUpdate: [{

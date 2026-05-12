@@ -6,23 +6,54 @@ import {
 import { HttpClient } from "../../../http";
 import { buildQueryString } from "../../../utils";
 
+/** Query payload used to check whether a specific chunk has been received. */
 export interface ChunkUploadCheckParams {
+  /** Original file name (used by the server to dedupe). */
   resumableFilename: string;
+  /** 1-based chunk index. */
   resumableChunkNumber: number;
+  /** Stable identifier shared across all chunks of one upload. */
   resumableIdentifier: string;
 }
 
+/** Payload sent to the `complete` endpoint to seal a chunked upload. */
 export interface ChunkUploadCompleteRequest {
+  /** Identifier the server should record as the final file id. */
   FileId: string;
+  /** Original file name. */
   FileName: string;
 }
 
+/**
+ * Options for `uploader.uploadFile`. Defaults to digital-asset uploads;
+ * set `attachment: true` to route the upload to the attachment store
+ * instead.
+ */
 export interface ChunkUploadOptions {
+  /** Chunk size in bytes. Defaults to 20MB. */
   chunkSize?: number;
+  /**
+   * Maximum number of chunks to upload in parallel. Defaults to 1
+   * (sequential).
+   */
   parallelLimit?: number;
+  /**
+   * Caller-provided upload identifier. Pass to resume a partial upload;
+   * omit to have the SDK generate a UUID.
+   */
   identifier?: string;
+  /**
+   * Called after each chunk finishes with the running and total chunk
+   * counts. Drive a progress bar with this.
+   */
   onProgress?: (uploaded: number, total: number) => void;
+  /** AbortSignal — aborting it cancels the upload. */
   signal?: AbortSignal;
+  /**
+   * Route the upload to the attachment endpoint instead of the
+   * digital-asset endpoint. Required when feeding the result into
+   * {@link attachmentVersions}.create.
+   */
   attachment?: boolean;
 }
 
@@ -31,7 +62,20 @@ const uploadPath = (forAttachment: boolean) =>
 const completePath = (forAttachment: boolean) =>
   forAttachment ? "/api/chunk/complete/attachment" : "/api/chunk/complete";
 
+/**
+ * Chunked file uploader for the PM API. Pair with {@link
+ * digitalAssetVersions}.create or {@link attachmentVersions}.create
+ * (the latter requires `options.attachment = true`).
+ *
+ * The lower-level `checkChunk` / `uploadChunk` / `complete` methods are
+ * exposed for callers that need to drive the resumable protocol
+ * directly; most code should just use `uploadFile`.
+ */
 export const uploader = (client: HttpClient) => ({
+  /**
+   * Check whether the server has already received a specific chunk.
+   * Useful for resumable uploads after a network hiccup.
+   */
   checkChunk: async (
     params: ChunkUploadCheckParams,
     options: { attachment?: boolean } = {},
@@ -41,6 +85,7 @@ export const uploader = (client: HttpClient) => ({
     );
   },
 
+  /** Upload a single chunk by index. */
   uploadChunk: async (
     chunk: Blob,
     params: ChunkUploadCheckParams,
@@ -57,6 +102,7 @@ export const uploader = (client: HttpClient) => ({
     return client.post(uploadPath(options.attachment ?? false), formData);
   },
 
+  /** Tell the server every chunk has been uploaded; seals the upload. */
   complete: async (
     request: ChunkUploadCompleteRequest,
     options: { attachment?: boolean } = {},
@@ -64,6 +110,34 @@ export const uploader = (client: HttpClient) => ({
     return client.post(completePath(options.attachment ?? false), request);
   },
 
+  /**
+   * Upload a file end-to-end via the PM chunk protocol. Returns the
+   * `FileId` / `FileName` to hand off to `digitalAssetVersions.create`
+   * (or `attachmentVersions.create` when `options.attachment` is true).
+   *
+   * On failure, `result.error` is a typed `AprimoError` subclass — use
+   * `instanceof` against `AprimoCancelledError` and
+   * `AprimoUploadSegmentError` for the upload-specific cases.
+   *
+   * @example
+   * ```ts
+   * const controller = new AbortController();
+   *
+   * const res = await aprimo.productivity.uploader.uploadFile(file, {
+   *   chunkSize: 10 * 1024 * 1024,
+   *   parallelLimit: 4,
+   *   signal: controller.signal,
+   *   onProgress: (done, total) => console.log(`${done}/${total}`),
+   * });
+   *
+   * if (res.ok) {
+   *   await aprimo.productivity.digitalAssetVersions.create(assetId, {
+   *     FileId: res.data!.FileId,
+   *     FileName: res.data!.FileName,
+   *   });
+   * }
+   * ```
+   */
   uploadFile: async (
     file: File,
     options: ChunkUploadOptions = {},

@@ -1,3 +1,8 @@
+/**
+ * Numeric ids that identify built-in PM object instances. Used in
+ * payloads where the API expects an object id (permissions, security
+ * contexts, extended-attribute references).
+ */
 export const PmObjectIds = {
   Activities: 1,
   ActivityCells: 10100,
@@ -33,6 +38,7 @@ export const PmObjectIds = {
   Users: 12,
 } as const;
 
+/** Numeric ids that identify built-in PM object types. */
 export const PmObjectTypeIds = {
   AccountIntegration: 10283,
   Activities: 1,
@@ -70,5 +76,7 @@ export const PmObjectTypeIds = {
   UserRoles: 9944,
 } as const;
 
+/** Union of all numeric values produced by {@link PmObjectIds}. */
 export type PmObjectId = (typeof PmObjectIds)[keyof typeof PmObjectIds];
+/** Union of all numeric values produced by {@link PmObjectTypeIds}. */
 export type PmObjectTypeId = (typeof PmObjectTypeIds)[keyof typeof PmObjectTypeIds];
