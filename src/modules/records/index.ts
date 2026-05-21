@@ -41,6 +41,19 @@ export interface CreateRecordRequest {
           fileName: string;
           versionLabel?: string;
           comment?: string;
+          previews?: {
+            addOrUpdate?: {
+              /** Upload token from `aprimo.uploader.uploadFile(...)`. */
+              id: string;
+              /** Display label for the preview. */
+              label?: string;
+              /** 1-based page number for multi-page previews. */
+              pageNumber?: number;
+              /** Custom XML tag stored on the preview. */
+              tag?: string;
+            }[];
+            remove?: { id: string }[];
+          };
         }[];
       };
     }[];
@@ -83,6 +96,19 @@ export interface UpdateRecordRequest {
             remove?: {
               id: string;
             }[];
+          };
+          previews?: {
+            addOrUpdate?: {
+              /** Upload token from `aprimo.uploader.uploadFile(...)`. */
+              id: string;
+              /** Display label for the preview. */
+              label?: string;
+              /** 1-based page number for multi-page previews. */
+              pageNumber?: number;
+              /** Custom XML tag stored on the preview. */
+              tag?: string;
+            }[];
+            remove?: { id: string }[];
           };
         }[];
         remove?: {
@@ -263,6 +289,30 @@ export const records = (client: HttpClient) => ({
    *     addOrUpdate: [{
    *       fieldId: "<field-id>",
    *       localizedValues: [{ languageId: "<lang-id>", value: "New value" }],
+   *     }],
+   *   },
+   * });
+   * ```
+   *
+   * @example Attach a manually-rendered preview (for non-natively-previewable files):
+   * ```ts
+   * const upload = await aprimo.uploader.uploadFile(jpgFile);
+   * await aprimo.records.update(recordId, {
+   *   files: {
+   *     addOrUpdate: [{
+   *       id: fileId,
+   *       versions: {
+   *         addOrUpdate: [{
+   *           id: fileVersionId,
+   *           previews: {
+   *             addOrUpdate: [{
+   *               id: upload.data!.token,
+   *               label: "Custom Preview",
+   *               pageNumber: 1,
+   *             }],
+   *           },
+   *         }],
+   *       },
    *     }],
    *   },
    * });

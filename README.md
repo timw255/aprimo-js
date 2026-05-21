@@ -2,7 +2,13 @@
 
 A JavaScript SDK for interacting with Aprimo REST APIs.
 
-> **This is a community-supported SDK and is not officially maintained or endorsed by Aprimo.** It is provided as a helpful resource for developers building with Aprimo. See the [Aprimo Developers](https://developers.aprimo.com/) site for official documentation and supported resources.
+> This is a community-supported SDK and is not officially maintained
+> or endorsed by Aprimo. It is provided as a helpful resource for developers
+> building with Aprimo. See the [Aprimo Developers](https://developers.aprimo.com/) site
+> for official documentation and supported resources.
+>
+> Part of the [Power Tools for Aprimo](https://aprimo.power-tools.app) collection of
+> integration utilities. See [TRADEMARKS.md](./TRADEMARKS.md).
 
 ## Available Modules
 
