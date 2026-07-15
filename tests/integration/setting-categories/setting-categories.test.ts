@@ -36,6 +36,20 @@ describe("settingCategories integration", () => {
     expect(res.data?.id).toBeDefined();
   });
 
+  it("updates the setting category", async () => {
+    const updatedName = `Integration Setting Category Updated ${Date.now()}`;
+
+    const res = await aprimo.settingCategories.update(id, {
+      name: updatedName,
+    });
+    expectOk(res);
+    logShape("settingCategories.update", res.data);
+
+    const getRes = await aprimo.settingCategories.getById(id);
+    expectOk(getRes);
+    expect(getRes.data?.name).toBe(updatedName);
+  });
+
   it("fetches a list of setting categories", async () => {
     const res = await aprimo.settingCategories.get({ pageSize: 5 });
     expectOk(res);

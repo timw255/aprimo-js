@@ -9,6 +9,8 @@ import { buildHeaders } from "../../utils";
 
 export type CreateSettingCategoryRequest = CreateFrom<SettingCategory>;
 
+export type UpdateSettingCategoryRequest = CreateFrom<SettingCategory>;
+
 export const settingCategories = (client: HttpClient) => ({
   /**
    * List setting categories. Returns one page; use `getPaged` for full
@@ -88,6 +90,23 @@ export const settingCategories = (client: HttpClient) => ({
     request: CreateSettingCategoryRequest,
   ): Promise<ApiResult<SettingCategory>> => {
     return client.post("/api/core/settingcategories", request);
+  },
+
+  /**
+   * Update a setting category.
+   *
+   * @example
+   * ```ts
+   * await aprimo.settingCategories.update(id, {
+   *   name: "Renamed Category",
+   * });
+   * ```
+   */
+  update: async (
+    id: string,
+    request: UpdateSettingCategoryRequest,
+  ): Promise<ApiResult<SettingCategory>> => {
+    return client.put(`/api/core/settingcategory/${id}`, request);
   },
 
   /**

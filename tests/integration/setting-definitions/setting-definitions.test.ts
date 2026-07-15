@@ -11,6 +11,7 @@ const aprimo = createClient({
 
 describe("settingDefinitions integration", () => {
   let settingDefinitionId: string;
+  let settingDefinitionName: string;
   let settingCategoryId: string;
 
   it("creates a setting category", async () => {
@@ -25,8 +26,10 @@ describe("settingDefinitions integration", () => {
   });
 
   it("creates a text setting definition", async () => {
+    settingDefinitionName = `IntegrationTestSetting_${Date.now()}`;
+
     const res = await aprimo.settingDefinitions.create({
-      name: `IntegrationTestSetting_${Date.now()}`,
+      name: settingDefinitionName,
       categoryId: settingCategoryId,
       allowSystemSetting: true,
       allowAnonymousAccess: false,
@@ -46,6 +49,22 @@ describe("settingDefinitions integration", () => {
     expectOk(res);
     logShape("settingDefinitions.getById", res.data);
     expect(res.data?.id).toBeDefined();
+  });
+
+  it("updates the setting definition", async () => {
+    const res = await aprimo.settingDefinitions.update(settingDefinitionId, {
+      dataType: "text",
+      name: settingDefinitionName,
+      categoryId: settingCategoryId,
+      allowSystemSetting: true,
+      defaultValue: "Updated Default",
+    });
+    expectOk(res);
+    logShape("settingDefinitions.update", res.data);
+
+    const getRes = await aprimo.settingDefinitions.getById(settingDefinitionId);
+    expectOk(getRes);
+    logShape("settingDefinitions.getById:updated", getRes.data);
   });
 
   it("fetches a list of setting definitions", async () => {

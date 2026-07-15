@@ -94,6 +94,14 @@ export type CreateSettingDefinitionRequest =
   | CreateReferenceSettingDefinitionRequest
   | CreateRoleSettingDefinitionRequest;
 
+/**
+ * `update` issues a PUT that replaces the setting definition, so the request
+ * carries the same shape as `create` — the discriminated union over the eight
+ * `dataType` values, with `name`, `categoryId`, `dataType`, and
+ * `allowSystemSetting` required.
+ */
+export type UpdateSettingDefinitionRequest = CreateSettingDefinitionRequest;
+
 export const settingDefinitions = (client: HttpClient) => ({
   /**
    * List setting definitions. Returns one page; use `getPaged` for full
@@ -187,6 +195,30 @@ export const settingDefinitions = (client: HttpClient) => ({
     request: CreateSettingDefinitionRequest,
   ): Promise<ApiResult<SettingDefinition>> => {
     return client.post("/api/core/settingdefinitions", request);
+  },
+
+  /**
+   * Update a setting definition. This is a PUT that replaces the definition,
+   * so — as with `create` — the request is a discriminated union over the
+   * eight `dataType` values and must include `name`, `categoryId`, and
+   * `allowSystemSetting`.
+   *
+   * @example
+   * ```ts
+   * await aprimo.settingDefinitions.update(id, {
+   *   dataType: "text",
+   *   name: "MySetting",
+   *   categoryId,
+   *   allowSystemSetting: true,
+   *   defaultValue: "Updated default",
+   * });
+   * ```
+   */
+  update: async (
+    id: string,
+    request: UpdateSettingDefinitionRequest,
+  ): Promise<ApiResult<SettingDefinition>> => {
+    return client.put(`/api/core/settingdefinition/${id}`, request);
   },
 
   /**
