@@ -6,13 +6,19 @@ vi.mock("axios");
 (axios as any).isAxiosError = (e: any): e is AxiosError =>
   e.isAxiosError === true;
 
-const mockedAxios = axios as unknown as { request: ReturnType<typeof vi.fn> };
+// HttpClient uses a private `axios.create()` instance; route its `.request`
+// through a shared mock the tests can reconfigure per case.
+const mockedAxios = { request: vi.fn() } as {
+  request: ReturnType<typeof vi.fn>;
+};
+(axios as any).create = vi.fn(() => mockedAxios);
 
 let tokenProvider: ReturnType<typeof vi.fn>;
 let client: HttpClient;
 
 beforeEach(() => {
   vi.resetAllMocks();
+  (axios as any).create = vi.fn(() => mockedAxios);
   tokenProvider = vi.fn().mockResolvedValue("mock-token");
   client = new HttpClient(tokenProvider, "https://api.test.com", {
     "X-App-Header": "static-header",

@@ -99,7 +99,13 @@ export const uploader = (client: HttpClient) => ({
     );
     formData.append("resumableIdentifier", params.resumableIdentifier);
     formData.append("file", chunk, params.resumableFilename);
-    return client.post(uploadPath(options.attachment ?? false), formData);
+    // Carries chunk data — opt out of the whole-request timeout.
+    return client.post(
+      uploadPath(options.attachment ?? false),
+      formData,
+      undefined,
+      { timeout: 0 },
+    );
   },
 
   /** Tell the server every chunk has been uploaded; seals the upload. */
@@ -107,7 +113,10 @@ export const uploader = (client: HttpClient) => ({
     request: ChunkUploadCompleteRequest,
     options: { attachment?: boolean } = {},
   ): Promise<ApiResult<unknown>> => {
-    return client.post(completePath(options.attachment ?? false), request);
+    // Server assembles the chunks here — this can exceed the default timeout.
+    return client.post(completePath(options.attachment ?? false), request, undefined, {
+      timeout: 0,
+    });
   },
 
   /**
@@ -192,6 +201,8 @@ export const uploader = (client: HttpClient) => ({
               fd.append("file", slice, file.name);
               return fd;
             })(),
+            undefined,
+            { timeout: 0, signal },
           );
 
           if (cancelled || signal?.aborted) return;
@@ -216,7 +227,12 @@ export const uploader = (client: HttpClient) => ({
             const completeRes = await client.post<unknown>(
               completePath(forAttachment),
               { FileId: identifier, FileName: file.name },
+              undefined,
+              { timeout: 0, signal },
             );
+            // An abort during complete is resolved by onAbort as a
+            // cancellation; don't also report it as a failure.
+            if (cancelled || signal?.aborted) return;
             signal?.removeEventListener("abort", onAbort);
             if (!completeRes.ok) {
               resolve({

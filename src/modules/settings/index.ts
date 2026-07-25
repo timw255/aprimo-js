@@ -39,17 +39,16 @@ export const settings = (client: HttpClient) => {
     scope?: SettingScope,
     scopeId?: string,
   ): Promise<ApiResult<Setting> | ApiResult<SettingCollection>> {
-    const nameList = Array.isArray(names) ? names : [names];
-    const isSingle = nameList.length === 1;
+    const isSingle = !Array.isArray(names);
 
     let url = isSingle
-      ? `/api/core/setting/${encodeURIComponent(nameList[0])}`
+      ? `/api/core/setting/${encodeURIComponent(names)}`
       : `/api/core/settings`;
 
     const queryParams: string[] = [];
 
     if (!isSingle) {
-      queryParams.push(`names=${encodeURIComponent(nameList.join(","))}`);
+      queryParams.push(`names=${encodeURIComponent(names.join(","))}`);
     }
 
     if (scope) queryParams.push(`scope=${scope}`);

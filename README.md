@@ -489,21 +489,19 @@ The `HttpClient` supports automatic retries for `429 Too Many Requests` errors.
 import { createClient } from "aprimo-js";
 
 const aprimo = createClient({
+  type: "client_credentials",
   environment: "your-env",
   clientId: "your-client-id",
   clientSecret: "your-client-secret",
-  authMode: "client_credentials",
-  httpOptions: {
-    maxRetries: 3,
-    retryHandler: async (error, attempt) => {
-      await new Promise((r) => setTimeout(r, 500 * attempt));
-      return true;
-    },
+  maxRetries: 3,
+  retryHandler: async (error, attempt) => {
+    await new Promise((r) => setTimeout(r, 500 * attempt));
+    return true;
   },
 });
 ```
 
-- `maxRetries`: Maximum number of total attempts (default `0`).
+- `maxRetries`: Maximum number of retries for `429` responses (default `0`).
 - `retryHandler`: Optional async function to control delay or cancel retry.
 
 ### Behavior
@@ -511,6 +509,24 @@ const aprimo = createClient({
 - Retries only occur for `429` errors.
 - `retryHandler` controls delay before retrying.
 - If `retryHandler` returns `false`, no further attempts will be made.
+
+## Request Timeout
+
+Every request has a whole-request timeout (default `30000` ms). On expiry the call
+fails with `AprimoTimeoutError`. Set it per client, or pass `0` to disable:
+
+```ts
+const aprimo = createClient({
+  type: "client_credentials",
+  environment: "your-env",
+  clientId: "your-client-id",
+  clientSecret: "your-client-secret",
+  timeout: 60_000, // or 0 to disable
+});
+```
+
+File uploads (`uploader.uploadFile`) opt out of this timeout internally, so large
+transfers aren't clipped regardless of the client default.
 
 ## Content Selector (Browser Only)
 

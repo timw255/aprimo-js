@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { ApiResult } from "./client";
 import {
   AprimoBadRequestError,
@@ -17,24 +17,50 @@ import {
   AprimoValidationError,
 } from "./errors";
 
+/** Default whole-request timeout in milliseconds. */
+export const DEFAULT_TIMEOUT_MS = 30_000;
+
 export interface HttpClientOptions {
   maxRetries?: number;
   retryHandler?: (error: unknown, attempt: number) => Promise<boolean>;
+  /**
+   * Whole-request timeout in milliseconds (includes upload/download time).
+   * Defaults to {@link DEFAULT_TIMEOUT_MS}. Pass `0` to disable the timeout.
+   */
+  timeout?: number;
+}
+
+/** Per-request overrides that callers can pass on individual verb methods. */
+export interface RequestOptions {
+  /** Cancel the request when this signal aborts (→ `AprimoCancelledError`). */
+  signal?: AbortSignal;
+  /**
+   * Whole-request timeout in milliseconds for this call only, overriding the
+   * client default. Pass `0` to disable the timeout (e.g., large uploads).
+   */
+  timeout?: number;
 }
 
 export class HttpClient {
+  private readonly http: AxiosInstance;
+
   constructor(
     private readonly tokenProvider: () => Promise<string>,
     private readonly baseUrl: string,
     private readonly baseHeaders: Record<string, string> = {},
     private readonly options: HttpClientOptions = {},
-  ) {}
+  ) {
+    this.http = axios.create({
+      timeout: this.options.timeout ?? DEFAULT_TIMEOUT_MS,
+    });
+  }
 
   async request<T>(
     method: "GET" | "POST" | "PUT" | "DELETE",
     endpoint: string,
     body?: unknown,
     headers: Record<string, string> = {},
+    opts: RequestOptions = {},
   ): Promise<ApiResult<T>> {
     const token = await this.tokenProvider();
     const isFormData = body instanceof FormData;
@@ -49,6 +75,8 @@ export class HttpClient {
         ...headers,
       },
       data: body,
+      signal: opts.signal,
+      ...(opts.timeout !== undefined ? { timeout: opts.timeout } : {}),
     };
 
     const maxAttempts = (this.options.maxRetries ?? 0) + 1;
@@ -56,7 +84,7 @@ export class HttpClient {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const response = await axios.request<T>(config);
+        const response = await this.http.request<T>(config);
         return { ok: true, status: response.status, data: response.data };
       } catch (error) {
         lastError = error;
@@ -84,20 +112,30 @@ export class HttpClient {
     return { ok: false, status: deriveStatus(error, sdkError), error: sdkError };
   }
 
-  get<T>(url: string, headers?: Record<string, string>) {
-    return this.request<T>("GET", url, undefined, headers);
+  get<T>(url: string, headers?: Record<string, string>, opts?: RequestOptions) {
+    return this.request<T>("GET", url, undefined, headers, opts);
   }
 
-  post<T>(url: string, body: unknown, headers?: Record<string, string>) {
-    return this.request<T>("POST", url, body, headers);
+  post<T>(
+    url: string,
+    body: unknown,
+    headers?: Record<string, string>,
+    opts?: RequestOptions,
+  ) {
+    return this.request<T>("POST", url, body, headers, opts);
   }
 
-  put<T>(url: string, body: unknown, headers?: Record<string, string>) {
-    return this.request<T>("PUT", url, body, headers);
+  put<T>(
+    url: string,
+    body: unknown,
+    headers?: Record<string, string>,
+    opts?: RequestOptions,
+  ) {
+    return this.request<T>("PUT", url, body, headers, opts);
   }
 
-  delete<T>(url: string, headers?: Record<string, string>) {
-    return this.request<T>("DELETE", url, undefined, headers);
+  delete<T>(url: string, headers?: Record<string, string>, opts?: RequestOptions) {
+    return this.request<T>("DELETE", url, undefined, headers, opts);
   }
 }
 

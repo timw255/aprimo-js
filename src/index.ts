@@ -5,6 +5,7 @@ import {
   getPasswordToken,
 } from "./auth";
 import { AprimoAuthConfigError } from "./errors";
+import { HttpClientOptions } from "./http";
 
 /**
  * Authentication strategy for `createClient`.
@@ -36,6 +37,19 @@ export type AuthStrategy =
 export type CreateClientOptions = {
   /** Your Aprimo subdomain — e.g., `"acme"` for `acme.aprimo.com`. */
   environment: string;
+  /**
+   * Whole-request timeout in milliseconds applied to every request (includes
+   * upload/download time). Defaults to 30000. Pass `0` to disable. Uploads
+   * opt out of this default internally so large transfers are not clipped.
+   */
+  timeout?: number;
+  /** Maximum number of retries for retryable (HTTP 429) responses. */
+  maxRetries?: number;
+  /**
+   * Called before each retry with the error and 1-based attempt number.
+   * Return `true` to allow the retry, `false` to stop.
+   */
+  retryHandler?: (error: unknown, attempt: number) => Promise<boolean>;
 } & AuthStrategy;
 
 /**
@@ -61,7 +75,9 @@ export type CreateClientOptions = {
  * ```
  */
 export function createClient(options: CreateClientOptions): Aprimo {
-  const { environment } = options;
+  const { environment, timeout, maxRetries, retryHandler } = options;
+
+  const httpOptions: HttpClientOptions = { timeout, maxRetries, retryHandler };
 
   let tokenProvider: () => Promise<string>;
 
@@ -83,7 +99,7 @@ export function createClient(options: CreateClientOptions): Aprimo {
     );
   }
 
-  return new Aprimo(environment, tokenProvider);
+  return new Aprimo(environment, tokenProvider, httpOptions);
 }
 
 export { Aprimo };

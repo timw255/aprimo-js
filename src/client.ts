@@ -19,7 +19,7 @@ import { downloadLinks } from "./modules/download-links";
 import { maintenanceJobs } from "./modules/maintenance-jobs";
 import { orders } from "./modules/orders";
 import { permissions } from "./modules/permissions";
-import { HttpClient } from "./http";
+import { HttpClient, HttpClientOptions } from "./http";
 import { translations } from "./modules/translations";
 import { uploader } from "./modules/uploader";
 import { settings } from "./modules/settings";
@@ -166,25 +166,44 @@ export class Aprimo {
   /**
    * @internal
    */
-  constructor(environment: string, tokenProvider: () => Promise<string>) {
+  constructor(
+    environment: string,
+    tokenProvider: () => Promise<string>,
+    options: HttpClientOptions = {},
+  ) {
     this.environment = environment;
 
     this.damUrl = `https://${this.environment}.dam.aprimo.com`;
     this.moUrl = `https://${this.environment}.aprimo.com`;
 
-    this.damHttp = new HttpClient(tokenProvider, this.damUrl, {
-      "API-VERSION": "1",
-      Accept: "application/hal+json",
-      "Content-Type": "application/json",
-    });
+    this.damHttp = new HttpClient(
+      tokenProvider,
+      this.damUrl,
+      {
+        "API-VERSION": "1",
+        Accept: "application/hal+json",
+        "Content-Type": "application/json",
+      },
+      options,
+    );
 
-    this.moHttp = new HttpClient(tokenProvider, this.moUrl, {
-      Accept: "application/hal+json",
-    });
+    this.moHttp = new HttpClient(
+      tokenProvider,
+      this.moUrl,
+      {
+        Accept: "application/hal+json",
+      },
+      options,
+    );
 
-    this.pmHttp = new HttpClient(tokenProvider, this.moUrl, {
-      Accept: "application/json",
-    });
+    this.pmHttp = new HttpClient(
+      tokenProvider,
+      this.moUrl,
+      {
+        Accept: "application/json",
+      },
+      options,
+    );
 
     this.additionalFiles = additionalFiles(this.damHttp);
     this.auditTrail = auditTrail(this.damHttp);

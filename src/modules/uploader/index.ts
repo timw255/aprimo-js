@@ -107,7 +107,9 @@ const uploadSmallFile = async (
 
   formData.append("file1", file, file.name);
 
-  return client.post("/uploads", formData);
+  // Disable the whole-request timeout: this single request carries the entire
+  // file, so a slow uplink would otherwise trip the client default.
+  return client.post("/uploads", formData, undefined, { timeout: 0 });
 };
 
 const uploadLargeFile = async (
@@ -179,7 +181,14 @@ const uploadLargeFile = async (
       const formData = new FormData();
       formData.append(`segment${index}`, blob, `${file.name}.segment${index}`);
 
-      const res = await client.post(`${uploadPath}?index=${index}`, formData);
+      // Each segment carries file data — opt out of the whole-request timeout.
+      // Pass the signal so an in-flight segment aborts at the socket.
+      const res = await client.post(
+        `${uploadPath}?index=${index}`,
+        formData,
+        undefined,
+        { timeout: 0, signal },
+      );
 
       if (signal?.aborted || cancelled) return;
 
@@ -200,13 +209,19 @@ const uploadLargeFile = async (
       options.onProgress?.(uploaded.size, segmentCount);
 
       if (uploaded.size === segmentCount) {
+        // Commit can take a while server-side while segments are assembled.
         const commitRes = await client.post<UploadCommitResponse>(
           `${uploadPath}/commit`,
           {
             filename: file.name,
             segmentcount: segmentCount,
           },
+          undefined,
+          { timeout: 0, signal },
         );
+        // An abort during commit is resolved by onAbort as a cancellation;
+        // don't also report it as a commit failure.
+        if (signal?.aborted || cancelled) return;
         signal?.removeEventListener("abort", onAbort);
         if (!commitRes.ok) {
           resolve({
