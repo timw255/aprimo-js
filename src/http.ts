@@ -1,8 +1,10 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { ApiResult } from "./client";
 import {
+  AprimoAuthCredentialsError,
   AprimoBadRequestError,
   AprimoCancelledError,
+  AprimoConfigError,
   AprimoConflictError,
   AprimoError,
   AprimoForbiddenError,
@@ -50,6 +52,12 @@ export class HttpClient {
     private readonly baseHeaders: Record<string, string> = {},
     private readonly options: HttpClientOptions = {},
   ) {
+    if (this.options.maxRetries !== undefined && this.options.maxRetries < 0) {
+      throw new AprimoConfigError(
+        `maxRetries must be >= 0 (received ${this.options.maxRetries})`,
+      );
+    }
+
     this.http = axios.create({
       timeout: this.options.timeout ?? DEFAULT_TIMEOUT_MS,
     });
@@ -62,49 +70,60 @@ export class HttpClient {
     headers: Record<string, string> = {},
     opts: RequestOptions = {},
   ): Promise<ApiResult<T>> {
-    const token = await this.tokenProvider();
-    const isFormData = body instanceof FormData;
+    let config: AxiosRequestConfig;
+    try {
+      const token = await this.tokenProvider();
+      const isFormData = body instanceof FormData;
 
-    const config: AxiosRequestConfig = {
-      method,
-      url: `${this.baseUrl}${endpoint}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...(isFormData ? {} : { "Content-Type": "application/json" }),
-        ...this.baseHeaders,
-        ...headers,
-      },
-      data: body,
-      signal: opts.signal,
-      ...(opts.timeout !== undefined ? { timeout: opts.timeout } : {}),
-    };
+      config = {
+        method,
+        url: `${this.baseUrl}${endpoint}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(isFormData ? {} : { "Content-Type": "application/json" }),
+          ...this.baseHeaders,
+          ...headers,
+        },
+        data: body,
+        signal: opts.signal,
+        ...(opts.timeout !== undefined ? { timeout: opts.timeout } : {}),
+      };
+    } catch (error) {
+      // Token acquisition failed before the request was ever sent. Funnel it
+      // through the envelope rather than rejecting — callers rely on `request`
+      // always resolving to an `ApiResult`.
+      return this.handleAxiosError(error);
+    }
 
+    // `maxRetries` is validated to be >= 0 at construction, so this is >= 1.
     const maxAttempts = (this.options.maxRetries ?? 0) + 1;
-    let lastError: unknown;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         const response = await this.http.request<T>(config);
         return { ok: true, status: response.status, data: response.data };
       } catch (error) {
-        lastError = error;
-
         const isRetryable =
           axios.isAxiosError(error) && error.response?.status === 429;
-        const wantsRetry =
-          this.options.retryHandler &&
-          (await this.options.retryHandler(error, attempt));
+        const canRetry = isRetryable && attempt < maxAttempts;
 
-        if (!isRetryable || !wantsRetry || attempt === maxAttempts) {
+        // Only consult the retry handler for errors we can actually retry.
+        // When no handler is supplied, a retryable error retries by default.
+        const wantsRetry =
+          canRetry &&
+          (this.options.retryHandler
+            ? await this.options.retryHandler(error, attempt)
+            : true);
+
+        if (!wantsRetry) {
           return this.handleAxiosError(error);
         }
       }
     }
 
-    // Retry loop exited without returning — translate the last error we saw.
-    // (Previously this path returned an "UnknownError" envelope; if the loop
-    // exhausted retries on a 429, callers expect to see a rate-limit error.)
-    return this.handleAxiosError(lastError);
+    // Unreachable while `maxAttempts >= 1` (the final attempt always returns
+    // inside the loop); present only to satisfy the return type.
+    return this.handleAxiosError(new Error("Request failed"));
   }
 
   private handleAxiosError(error: unknown): ApiResult<never> {
@@ -147,6 +166,12 @@ export class HttpClient {
  * `AprimoError`.
  */
 function translateAxiosError(error: unknown): AprimoError {
+  // Already an SDK error (e.g. thrown by the token provider) — preserve its
+  // specific type rather than flattening it into a generic UnknownError.
+  if (error instanceof AprimoError) {
+    return error;
+  }
+
   if (!axios.isAxiosError(error)) {
     return new AprimoError(
       error instanceof Error ? error.message : "An unknown error occurred",
@@ -217,6 +242,22 @@ function deriveStatus(error: unknown, sdkError: AprimoError): number {
   }
   // Cancelled requests: preserve the SDK's pre-existing 499 convention.
   if (sdkError instanceof AprimoCancelledError) return 499;
+  // Auth-credential failures (e.g. thrown by the token provider) carry their
+  // own HTTP status even though they are not `AprimoHttpError`s.
+  if (
+    sdkError instanceof AprimoAuthCredentialsError &&
+    sdkError.status !== undefined
+  ) {
+    return sdkError.status;
+  }
+  // Transport failures never received an HTTP response — report 0 ("no status")
+  // rather than masquerading as a server 500.
+  if (
+    sdkError instanceof AprimoNetworkError ||
+    sdkError instanceof AprimoTimeoutError
+  ) {
+    return 0;
+  }
   return 500;
 }
 
