@@ -576,6 +576,33 @@ selector.open(
 
 > ℹ️ When using `singlerendition`, your `limitingSearchExpression` should be: `"latestversionofmasterfile.haspublicuri = true"`
 
+> ⚠️ `select` and `dialogMode` values are case-sensitive and must be lowercase. Aprimo silently falls back to its default (`multiple` / `default`) for unrecognized values instead of returning an error.
+
+### Dialog Mode
+
+| `dialogMode` Value | Behavior                                                                 |
+|--------------------|--------------------------------------------------------------------------|
+| `default`          | Cancel and Accept buttons at the bottom of the page                      |
+| `fullscreen`       | Accept button at the top of the page; no Cancel button                   |
+
+> ℹ️ `dialogMode` is ignored when `select` is `singlerendition` — Aprimo forces `fullscreen`.
+
+### Window Features
+
+By default the selector opens in whatever `window.open` gives you — usually a new tab. Pass `windowFeatures` to control that; the value goes straight to `window.open` and is not sent to Aprimo:
+
+```ts
+selector.open(
+  {
+    title: "Choose content",
+    select: "singlerendition",
+    limitingSearchExpression: "latestversionofmasterfile.haspublicuri = true",
+    windowFeatures: "popup=yes,width=1200,height=800",
+  },
+  (result) => { /* ... */ }
+);
+```
+
 ## Contributing
 
 We welcome contributions of all kinds — PRs, bug reports, feedback, and ideas!

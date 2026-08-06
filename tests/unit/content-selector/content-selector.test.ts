@@ -39,7 +39,7 @@ describe("contentSelector", () => {
 
     const options = {
       title: "Select something",
-      select: "Single" as const,
+      select: "single" as const,
     };
 
     selector.open(options, vi.fn());
@@ -48,11 +48,38 @@ describe("contentSelector", () => {
       JSON.stringify(options),
     ).toString("base64")}`;
 
-    expect(mockOpen).toHaveBeenCalledWith(expectedUrl, "AprimoContentSelector");
+    expect(mockOpen).toHaveBeenCalledWith(
+      expectedUrl,
+      "AprimoContentSelector",
+      undefined,
+    );
     expect(mockAddEventListener).toHaveBeenCalledWith(
       "message",
       expect.any(Function),
       false,
+    );
+  });
+
+  it("forwards windowFeatures to window.open without sending it to Aprimo", () => {
+    const selector = contentSelector("mytenant");
+
+    selector.open(
+      {
+        title: "Select something",
+        select: "singlerendition",
+        windowFeatures: "width=1200,height=800",
+      },
+      vi.fn(),
+    );
+
+    const expectedUrl = `https://mytenant.dam.aprimo.com/dam/selectcontent#options=${Buffer.from(
+      JSON.stringify({ title: "Select something", select: "singlerendition" }),
+    ).toString("base64")}`;
+
+    expect(mockOpen).toHaveBeenCalledWith(
+      expectedUrl,
+      "AprimoContentSelector",
+      "width=1200,height=800",
     );
   });
 
