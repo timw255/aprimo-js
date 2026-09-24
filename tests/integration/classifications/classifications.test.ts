@@ -88,6 +88,17 @@ describe("classifications integration", () => {
     logShape("classifications.updateRecordPermissions", res.data);
   });
 
+  it("reads back the record permissions", async () => {
+    const res =
+      await aprimo.classifications.getRecordPermissions(classificationId);
+    expectOk(res);
+    logShape("classifications.getRecordPermissions", res.data);
+    expect(res.data?.breakInheritance).toBe(false);
+    expect(
+      res.data?.permissions?.some((p) => p.userGroupId === userGroupId),
+    ).toBe(true);
+  });
+
   it("updates tree permissions", async () => {
     const res = await aprimo.classifications.updateTreePermissions(
       classificationId,
@@ -102,6 +113,16 @@ describe("classifications integration", () => {
     logShape("classifications.updateTreePermissions", res.data);
   });
 
+  it("reads back the tree permissions", async () => {
+    const res =
+      await aprimo.classifications.getTreePermissions(classificationId);
+    expectOk(res);
+    logShape("classifications.getTreePermissions", res.data);
+    expect(
+      res.data?.permissions?.some((p) => p.userGroupId === userGroupId),
+    ).toBe(true);
+  });
+
   it("updates download permissions", async () => {
     const res = await aprimo.classifications.updateDownloadPermissions(
       classificationId,
@@ -114,6 +135,16 @@ describe("classifications integration", () => {
     );
     expectOk(res);
     logShape("classifications.updateDownloadPermissions", res.data);
+  });
+
+  it("reads back the download permissions", async () => {
+    const res =
+      await aprimo.classifications.getDownloadPermissions(classificationId);
+    expectOk(res);
+    logShape("classifications.getDownloadPermissions", res.data);
+    expect(
+      res.data?.permissions?.some((p) => p.userGroupId === userGroupId),
+    ).toBe(true);
   });
 
   it("deletes the classification", async () => {

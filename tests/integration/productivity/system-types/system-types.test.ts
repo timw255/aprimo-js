@@ -37,8 +37,12 @@ describe("productivity systemTypes integration", () => {
     expectOk(list);
     const itemHref = list.data?._embedded?.items?.[0];
     const itemId = (itemHref as { systemTypeId?: number } | undefined)
-      ?.systemTypeId!;
-    const res = await aprimo.productivity.systemTypes.getById("attachment", itemId);
+      ?.systemTypeId;
+    expect(itemId).toBeDefined();
+    const res = await aprimo.productivity.systemTypes.getById(
+      "attachment",
+      itemId!,
+    );
     expectOk(res);
     logShape("systemTypes.getById", res.data);
   });

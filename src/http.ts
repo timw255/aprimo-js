@@ -22,7 +22,18 @@ import {
 /** Default whole-request timeout in milliseconds. */
 export const DEFAULT_TIMEOUT_MS = 30_000;
 
+/** Base delay for the exponential backoff applied between retries. */
+const RETRY_BASE_DELAY_MS = 500;
+
+/** Upper bound on a single backoff wait, including a server `Retry-After`. */
+const MAX_RETRY_DELAY_MS = 30_000;
+
 export interface HttpClientOptions {
+  /**
+   * Maximum number of retries for retryable (HTTP 429) responses. Retries are
+   * spaced out using the response's `Retry-After` header when present, and
+   * exponential backoff otherwise.
+   */
   maxRetries?: number;
   retryHandler?: (error: unknown, attempt: number) => Promise<boolean>;
   /**
@@ -73,17 +84,31 @@ export class HttpClient {
     let config: AxiosRequestConfig;
     try {
       const token = await this.tokenProvider();
-      const isFormData = body instanceof FormData;
+      const isFormData =
+        typeof FormData !== "undefined" && body instanceof FormData;
+
+      const mergedHeaders: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        ...this.baseHeaders,
+        ...headers,
+      };
+
+      // Axios generates the multipart boundary itself, but only when no
+      // Content-Type is present. A base header (the DAM client sets
+      // `application/json`) or a caller-supplied one would otherwise win the
+      // merge above and make axios JSON-serialize the FormData instead —
+      // silently sending `{"file1":{}}` and dropping the file bytes.
+      if (isFormData) {
+        for (const key of Object.keys(mergedHeaders)) {
+          if (key.toLowerCase() === "content-type") delete mergedHeaders[key];
+        }
+      }
 
       config = {
         method,
         url: `${this.baseUrl}${endpoint}`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...(isFormData ? {} : { "Content-Type": "application/json" }),
-          ...this.baseHeaders,
-          ...headers,
-        },
+        headers: mergedHeaders,
         data: body,
         signal: opts.signal,
         ...(opts.timeout !== undefined ? { timeout: opts.timeout } : {}),
@@ -117,6 +142,14 @@ export class HttpClient {
 
         if (!wantsRetry) {
           return this.handleAxiosError(error);
+        }
+
+        // Back off before trying again. Retrying a 429 immediately is what the
+        // server just asked us not to do, and typically escalates throttling.
+        try {
+          await sleep(retryDelayMs(error, attempt), opts.signal);
+        } catch (abortError) {
+          return this.handleAxiosError(abortError);
         }
       }
     }
@@ -259,6 +292,67 @@ function deriveStatus(error: unknown, sdkError: AprimoError): number {
     return 0;
   }
   return 500;
+}
+
+/**
+ * How long to wait before retry number `attempt`. Prefers the server's
+ * `Retry-After` hint (delay-seconds or HTTP-date, per RFC 9110) and otherwise
+ * falls back to exponential backoff. Always clamped to
+ * {@link MAX_RETRY_DELAY_MS} so a hostile or malformed header can't park a
+ * request for hours.
+ */
+function retryDelayMs(error: unknown, attempt: number): number {
+  if (axios.isAxiosError(error)) {
+    const retryAfter = parseRetryAfterMs(extractRetryAfter(error));
+    if (retryAfter !== undefined) {
+      return Math.min(retryAfter, MAX_RETRY_DELAY_MS);
+    }
+  }
+  return Math.min(
+    RETRY_BASE_DELAY_MS * 2 ** (attempt - 1),
+    MAX_RETRY_DELAY_MS,
+  );
+}
+
+/** Parse a `Retry-After` value (delay-seconds or HTTP-date) into milliseconds. */
+function parseRetryAfterMs(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) {
+    return seconds > 0 ? seconds * 1000 : 0;
+  }
+
+  const date = Date.parse(value);
+  if (!Number.isNaN(date)) {
+    return Math.max(0, date - Date.now());
+  }
+
+  return undefined;
+}
+
+/** Wait `ms`, rejecting early with an `AprimoCancelledError` if `signal` aborts. */
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (ms <= 0) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new AprimoCancelledError("Request was cancelled"));
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+
+    function onAbort() {
+      clearTimeout(timer);
+      reject(new AprimoCancelledError("Request was cancelled"));
+    }
+
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
 function extractRetryAfter(error: AxiosError): string | undefined {

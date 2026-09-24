@@ -36,7 +36,18 @@ describe("search integration", () => {
     expect(res.data?.page).toBeDefined();
   });
 
+  it("reads the search index status", async () => {
+    const res = await aprimo.search.getIndexStatus();
+
+    expectOk(res);
+    logShape("search.getIndexStatus", res.data);
+    expect(res.data?.indexedRecords).toBeGreaterThan(0);
+    expect(res.data?.rebuildRequired).toBeDefined();
+  });
+
   it("rebuilds the search index", async () => {
-    await expect(aprimo.search.rebuildIndex()).resolves.toBeUndefined();
+    const res = await aprimo.search.rebuildIndex();
+    expectOk(res);
+    logShape("search.rebuildIndex", res.data);
   });
 });

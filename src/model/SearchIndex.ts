@@ -1,28 +1,21 @@
-import { ApiLink } from "./ApiLink";
-
 /**
- * Representation of a search index.
+ * Status of the tenant's search index, as reported by `search.getIndexStatus()`.
  */
 export interface SearchIndex {
-  /** Provides a number of indexed classifications. Format: int64. */
+  /** Number of classifications currently present in the index. Format: int32. */
   indexedClassifications: number;
-  /** Provides a number of indexed records. Format: int64. */
+  /** Number of records currently present in the index. Format: int32. */
   indexedRecords: number;
-  /** Provides the last change date and time. Format: date-time. */
+  /** Datetime of the most recent change picked up by the index, in UTC time. */
   lastChangeDateTime: string;
-  /** Provides the last change ID. Format: int64. */
+  /** Identifier of the most recent change picked up by the index. Format: int64. */
   lastChangeId: number;
-  /** Provides a date and time when the last index built on. Format: date-time. */
+  /** Datetime the index was last fully rebuilt, in UTC time. */
   lastIndexRebuild: string;
-  /** Provides a number of pending changes. Format: int32. */
+  /** Number of changes not yet reflected in the index. Format: int32. */
   pendingChanges: number;
-  /** Returns true if the search index needs to be rebuilt. */
+  /** Indicates whether a full rebuild is required. */
   rebuildRequired: boolean;
-  /** Returns true if the search is indexing. */
+  /** Indicates whether a full rebuild is already scheduled. */
   rebuildScheduled: boolean;
-  _links: SearchIndexLinks;
-}
-
-export interface SearchIndexLinks {
-  self: ApiLink;
 }

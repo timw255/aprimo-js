@@ -1,3 +1,5 @@
+import { ActionType } from "../../model/ActionType";
+import { ActionTypeCollection } from "../../model/ActionTypeCollection";
 import { ApiResult } from "../../client";
 import { Check } from "../../model/Check";
 import { CheckCategory } from "../../model/CheckCategory";
@@ -8,6 +10,7 @@ import { CheckFindingCollection } from "../../model/CheckFindingCollection";
 import { CheckOutcome, CheckResult } from "../../model/CheckResult";
 import { CheckResultCollection } from "../../model/CheckResultCollection";
 import { HttpClient } from "../../http";
+import { Label } from "../../model/Label";
 import { QueryParams } from "../../model/QueryParams";
 import { buildHeaders } from "../../utils";
 
@@ -15,14 +18,45 @@ export interface CreateCheckRequest {
   name: string;
   actionTypeId: string;
   checkCategoryId: string;
+  /** Whether the check is active. Defaults to `true` server-side. */
+  isActive?: boolean;
+  /**
+   * Whether the check can be deleted afterwards. Defaults to `true` server-side.
+   * A check created with `false` cannot be removed by `delete`, and the API also
+   * refuses to record check results against it.
+   */
+  isDeletable?: boolean;
+  /** Multi-language labels for this check. */
+  labels?: Label[];
 }
 
-export type UpdateCheckRequest = Partial<CreateCheckRequest>;
+/**
+ * `update` issues a PUT that replaces the check, so the request carries the same
+ * shape as `create` minus `isDeletable`, which is fixed at creation.
+ */
+export type UpdateCheckRequest = Omit<CreateCheckRequest, "isDeletable">;
 
 export interface CreateCheckResultRequest {
   checkId: string;
   outcome?: CheckOutcome;
   description?: string;
+  /**
+   * Findings to record alongside the result. Supplying them here creates the
+   * result and its findings in a single call, rather than following up with
+   * `createFinding` for each one.
+   */
+  findings?: CreateCheckResultFindingData[];
+}
+
+/** A finding supplied inline on {@link CreateCheckResultRequest.findings}. */
+export interface CreateCheckResultFindingData {
+  occurrence: number;
+  finding: string;
+  outcome: CheckOutcome;
+  explanation?: string;
+  recommendation?: string;
+  /** Serialized JSON document — see {@link CreateCheckFindingRequest.additionalData}. */
+  additionalData?: string;
 }
 
 export interface UpdateCheckResultRequest {
@@ -31,14 +65,30 @@ export interface UpdateCheckResultRequest {
 }
 
 export interface CreateCheckFindingRequest {
+  /** Occurrence number of the finding within the check result. Must be greater than 0. */
   occurrence: number;
   finding: string;
   outcome: CheckOutcome;
   explanation?: string;
   recommendation?: string;
+  /**
+   * Extra data to store on the finding, as a serialized JSON document
+   * (e.g. `JSON.stringify({ ... })`). The API rejects a value that isn't valid
+   * JSON — including an empty string — with an HTTP 500. Omit it rather than
+   * passing `""`.
+   */
+  additionalData?: string;
 }
 
-export type UpdateCheckFindingRequest = Partial<CreateCheckFindingRequest>;
+/**
+ * `updateFinding` issues a PUT that replaces the finding, so `finding` and
+ * `outcome` must be resent. `occurrence` is not part of the body — it identifies
+ * the finding in the URL.
+ */
+export type UpdateCheckFindingRequest = Omit<
+  CreateCheckFindingRequest,
+  "occurrence"
+>;
 
 export const checks = (client: HttpClient) => ({
   /**
@@ -97,6 +147,43 @@ export const checks = (client: HttpClient) => ({
     request: UpdateCheckRequest,
   ): Promise<ApiResult<void>> => {
     return client.put(`/api/core/checks/${id}`, request);
+  },
+
+  /**
+   * Permanently delete a check.
+   *
+   * Only works for checks created with `isDeletable` left at its default (or
+   * set to `true`) — the API refuses to delete a check marked non-deletable.
+   *
+   * @example
+   * ```ts
+   * await aprimo.checks.delete(checkId);
+   * ```
+   */
+  delete: async (id: string): Promise<ApiResult<void>> => {
+    return client.delete(`/api/core/checks/${id}`);
+  },
+
+  /**
+   * List the check action types available in the tenant. Use an action type's
+   * id as `actionTypeId` when creating a check.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.checks.getActionTypes();
+   * const actionTypeId = res.data?.items?.[0]?.id;
+   * ```
+   */
+  getActionTypes: async (
+    params?: QueryParams,
+  ): Promise<ApiResult<ActionTypeCollection>> => {
+    const headers = buildHeaders(params);
+    return client.get("/api/core/actiontypes", headers);
+  },
+
+  /** Fetch a single check action type by id. */
+  getActionTypeById: async (id: string): Promise<ApiResult<ActionType>> => {
+    return client.get(`/api/core/actiontype/${id}`);
   },
 
   /**
@@ -205,24 +292,31 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
-  /** Fetch a single finding by occurrence id. */
+  /**
+   * Fetch a single finding by its occurrence number within the check result.
+   *
+   * Findings have no id of their own — `occurrence` is the identifier.
+   */
   getFindingById: async (
     fileVersionId: string,
     checkResultId: string,
-    occurrenceId: string,
+    occurrence: number,
   ): Promise<ApiResult<CheckFinding>> => {
     return client.get(
-      `/api/core/fileversion/${fileVersionId}/checkresult/${checkResultId}/findings/${occurrenceId}`,
+      `/api/core/fileversion/${fileVersionId}/checkresult/${checkResultId}/findings/${occurrence}`,
     );
   },
 
   /**
    * Add a finding to a check result.
    *
+   * The response carries no id — address the finding afterwards by the
+   * `occurrence` you supplied here.
+   *
    * @example
    * ```ts
    * await aprimo.checks.createFinding(fileVersionId, checkResultId, {
-   *   occurrence: 1, finding: "Color profile drift", outcome: "Fail",
+   *   occurrence: 1, finding: "Color profile drift", outcome: "fail",
    * });
    * ```
    */
@@ -237,27 +331,37 @@ export const checks = (client: HttpClient) => ({
     );
   },
 
-  /** Update a finding by occurrence id. */
+  /**
+   * Update a finding by its occurrence number. This is a PUT that replaces the
+   * finding, so `finding` and `outcome` must be included.
+   *
+   * @example
+   * ```ts
+   * await aprimo.checks.updateFinding(fileVersionId, checkResultId, 1, {
+   *   finding: "Color profile drift", outcome: "pass",
+   * });
+   * ```
+   */
   updateFinding: async (
     fileVersionId: string,
     checkResultId: string,
-    occurrenceId: string,
+    occurrence: number,
     request: UpdateCheckFindingRequest,
   ): Promise<ApiResult<void>> => {
     return client.put(
-      `/api/core/fileversion/${fileVersionId}/checkresult/${checkResultId}/findings/${occurrenceId}`,
+      `/api/core/fileversion/${fileVersionId}/checkresult/${checkResultId}/findings/${occurrence}`,
       request,
     );
   },
 
-  /** Delete a finding by occurrence id. */
+  /** Delete a finding by its occurrence number. */
   deleteFinding: async (
     fileVersionId: string,
     checkResultId: string,
-    occurrenceId: string,
+    occurrence: number,
   ): Promise<ApiResult<void>> => {
     return client.delete(
-      `/api/core/fileversion/${fileVersionId}/checkresult/${checkResultId}/findings/${occurrenceId}`,
+      `/api/core/fileversion/${fileVersionId}/checkresult/${checkResultId}/findings/${occurrence}`,
     );
   },
 });

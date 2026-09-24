@@ -1,6 +1,7 @@
 import { ApiResult } from "../../client";
 import { Expander } from "../../expander";
 import { HttpClient } from "../../http";
+import { SearchIndex } from "../../model/SearchIndex";
 import { SearchResponse } from "../../model/SearchResponse";
 import { buildHeaders, buildQueryString } from "../../utils";
 
@@ -128,6 +129,20 @@ export const search = (client: HttpClient) => ({
   },
 
   /**
+   * Read the status of the search index — how much is indexed, how far behind
+   * it is, and whether a rebuild is required or already scheduled.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.search.getIndexStatus();
+   * if (res.data?.pendingChanges) console.log("index is catching up");
+   * ```
+   */
+  getIndexStatus: async (): Promise<ApiResult<SearchIndex>> => {
+    return client.get("/api/core/searchindex");
+  },
+
+  /**
    * Schedule a full rebuild of the search index. Heavy server-side operation —
    * usually only run by administrators after large schema or data changes.
    *
@@ -136,8 +151,8 @@ export const search = (client: HttpClient) => ({
    * await aprimo.search.rebuildIndex();
    * ```
    */
-  rebuildIndex: async (): Promise<void> => {
-    await client.put("/api/core/searchindex", {
+  rebuildIndex: async (): Promise<ApiResult<void>> => {
+    return client.put("/api/core/searchindex", {
       rebuildScheduled: true,
     });
   },

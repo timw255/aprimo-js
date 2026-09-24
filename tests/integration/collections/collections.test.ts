@@ -91,6 +91,24 @@ describe("collections integration", () => {
     logShape("collections.updateRecords", res.data);
   });
 
+  it("gets the records on the static collection", async () => {
+    const res = await aprimo.collections.getRecords(staticId);
+    expectOk(res);
+    logShape("collections.getRecords", res.data);
+    expect(res.data?.items?.some((r) => r.id === recordId)).toBe(true);
+  });
+
+  it("updates the static collection", async () => {
+    const name = `IntegrationStaticRenamed_${Date.now()}`;
+    const res = await aprimo.collections.update(staticId, { name });
+    expectOk(res);
+    logShape("collections.update", res.data);
+
+    const after = await aprimo.collections.getById(staticId);
+    expectOk(after);
+    expect(after.data?.name).toBe(name);
+  });
+
   it("deletes the static collection", async () => {
     const res = await aprimo.collections.delete(staticId);
     expectOk(res);

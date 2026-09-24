@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { cacheTokenProvider, getTokenExpiryMs } from "../../../src/auth";
+import axios from "axios";
+import {
+  cacheTokenProvider,
+  getClientCredentialsToken,
+  getTokenExpiryMs,
+} from "../../../src/auth";
+import { AprimoAuthCredentialsError, AprimoAuthError } from "../../../src/errors";
 
 function makeJwt(claims: Record<string, unknown>): string {
   const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString(
@@ -51,6 +57,69 @@ describe("getTokenExpiryMs", () => {
     const after = Date.now();
     expect(result).toBeGreaterThanOrEqual(before + FALLBACK_TTL_MS);
     expect(result).toBeLessThanOrEqual(after + FALLBACK_TTL_MS);
+  });
+});
+
+describe("getClientCredentialsToken", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("rejects a 2xx response that carries no access_token", async () => {
+    // Otherwise `undefined` flows through to `Authorization: Bearer undefined`
+    // and surfaces much later as an opaque 401.
+    vi.spyOn(axios, "post").mockResolvedValue({
+      data: { token_type: "Bearer", expires_in: 3600 },
+    });
+
+    await expect(getClientCredentialsToken("env", "id", "secret")).rejects.toThrow(
+      /no access_token/,
+    );
+  });
+
+  it("applies a timeout to the token request", async () => {
+    const post = vi
+      .spyOn(axios, "post")
+      .mockResolvedValue({ data: { access_token: "t" } });
+
+    await getClientCredentialsToken("env", "id", "secret", 1234);
+
+    expect(post.mock.calls[0][2]).toMatchObject({ timeout: 1234 });
+
+    await getClientCredentialsToken("env", "id", "secret");
+
+    // A hung token endpoint must not block forever when no timeout is given.
+    expect(post.mock.calls[1][2]?.timeout).toBeGreaterThan(0);
+  });
+
+  it("reports a transport failure as an auth error, not a credential rejection", async () => {
+    const timeout = Object.assign(new Error("timeout of 800ms exceeded"), {
+      isAxiosError: true,
+      code: "ECONNABORTED",
+    });
+    vi.spyOn(axios, "post").mockRejectedValue(timeout);
+
+    const err = await getClientCredentialsToken("env", "id", "secret").catch(
+      (e) => e,
+    );
+
+    expect(err).toBeInstanceOf(AprimoAuthError);
+    expect(err).not.toBeInstanceOf(AprimoAuthCredentialsError);
+  });
+
+  it("still reports a rejected credential as AprimoAuthCredentialsError", async () => {
+    const rejected = Object.assign(new Error("Request failed"), {
+      isAxiosError: true,
+      response: { status: 401, statusText: "Unauthorized" },
+    });
+    vi.spyOn(axios, "post").mockRejectedValue(rejected);
+
+    const err = await getClientCredentialsToken("env", "id", "secret").catch(
+      (e) => e,
+    );
+
+    expect(err).toBeInstanceOf(AprimoAuthCredentialsError);
+    expect(err.status).toBe(401);
   });
 });
 

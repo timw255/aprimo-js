@@ -10,14 +10,31 @@ const aprimo = createClient({
 });
 
 const fileVersionId = process.env.APRIMO_DAM_FILE_VERSION_ID!;
-const actionTypeId = process.env.APRIMO_DAM_TEST_CHECK_ACTION_TYPE_ID!;
 const checkCategoryId = process.env.APRIMO_DAM_TEST_CHECK_CATEGORY_ID!;
 
+/** Occurrence identifying the finding under test within its check result. */
+const OCCURRENCE = 1;
+
 describe("checks integration", () => {
+  let actionTypeId: string;
   let checkId: string;
   let firstCategoryId: string;
   let checkResultId: string;
-  let findingId: string;
+
+  it("lists action types", async () => {
+    const res = await aprimo.checks.getActionTypes({ pageSize: 5 });
+    expectOk(res);
+    logShape("checks.getActionTypes", res.data);
+    expect(res.data?.items?.length).toBeGreaterThan(0);
+    actionTypeId = res.data!.items![0]!.id;
+  });
+
+  it("gets an action type by id", async () => {
+    const res = await aprimo.checks.getActionTypeById(actionTypeId);
+    expectOk(res);
+    logShape("checks.getActionTypeById", res.data);
+    expect(res.data?.id).toBe(actionTypeId);
+  });
 
   it("lists checks", async () => {
     const res = await aprimo.checks.get({ pageSize: 5 });
@@ -46,6 +63,9 @@ describe("checks integration", () => {
       name: `int-test-check-${Date.now()}`,
       actionTypeId,
       checkCategoryId,
+      // Explicit so the suite can clean up after itself; a non-deletable check
+      // would linger in the tenant and refuse to accept check results.
+      isDeletable: true,
     });
     expectOk(res);
     logShape("checks.create", res.data);
@@ -106,16 +126,15 @@ describe("checks integration", () => {
 
   it("creates a finding on the check result", async () => {
     const res = await aprimo.checks.createFinding(fileVersionId, checkResultId, {
-      occurrence: 1,
+      occurrence: OCCURRENCE,
       finding: "integration finding",
       outcome: "warning",
       explanation: "test",
       recommendation: "ignore",
+      additionalData: JSON.stringify({ source: "integration" }),
     });
     expectOk(res);
     logShape("checks.createFinding", res.data);
-    expect(res.data?.id).toBeDefined();
-    findingId = res.data!.id!;
   });
 
   it("lists findings for the check result", async () => {
@@ -124,23 +143,23 @@ describe("checks integration", () => {
     logShape("checks.getFindings", res.data);
   });
 
-  it("gets a finding by id", async () => {
+  it("gets a finding by occurrence", async () => {
     const res = await aprimo.checks.getFindingById(
       fileVersionId,
       checkResultId,
-      findingId,
+      OCCURRENCE,
     );
     expectOk(res);
     logShape("checks.getFindingById", res.data);
-    expect(res.data?.id).toBe(findingId);
+    expect(res.data?.occurrence).toBe(OCCURRENCE);
   });
 
   it("updates the finding", async () => {
     const res = await aprimo.checks.updateFinding(
       fileVersionId,
       checkResultId,
-      findingId,
-      { outcome: "pass" },
+      OCCURRENCE,
+      { finding: "integration finding", outcome: "pass" },
     );
     expectOk(res);
     logShape("checks.updateFinding", res.data);
@@ -150,7 +169,7 @@ describe("checks integration", () => {
     const res = await aprimo.checks.deleteFinding(
       fileVersionId,
       checkResultId,
-      findingId,
+      OCCURRENCE,
     );
     expectOk(res);
     logShape("checks.deleteFinding", res.data);
@@ -160,5 +179,11 @@ describe("checks integration", () => {
     const res = await aprimo.checks.deleteResult(fileVersionId, checkResultId);
     expectOk(res);
     logShape("checks.deleteResult", res.data);
+  });
+
+  it("deletes the check", async () => {
+    const res = await aprimo.checks.delete(checkId);
+    expectOk(res);
+    logShape("checks.delete", res.data);
   });
 });

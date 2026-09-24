@@ -44,7 +44,7 @@ describe("fieldDefinitions integration", () => {
       searchIndexRebuildRequired: false,
       sortIndex: 1,
       storageMode: "LogChanges",
-      tag: "",
+      tag: null,
       validation: "",
       validationErrorMessage: "",
       validationTrigger: "Always",

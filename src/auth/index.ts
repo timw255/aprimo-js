@@ -1,5 +1,10 @@
-import axios, { AxiosError } from "axios";
-import { AprimoAuthCredentialsError, AprimoAuthError } from "../errors";
+import axios from "axios";
+import {
+  AprimoAuthCredentialsError,
+  AprimoAuthError,
+  AprimoError,
+} from "../errors";
+import { DEFAULT_TIMEOUT_MS } from "../http";
 
 const FALLBACK_TOKEN_TTL_MS = 9 * 60 * 1000;
 const TOKEN_REFRESH_SKEW_MS = 30 * 1000;
@@ -55,6 +60,7 @@ export async function getClientCredentialsToken(
   environment: string,
   clientId: string,
   clientSecret: string,
+  timeout?: number,
 ): Promise<string> {
   try {
     const response = await axios.post(
@@ -65,22 +71,15 @@ export async function getClientCredentialsToken(
         client_secret: clientSecret,
         scope: "api",
       }),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } },
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        timeout: timeout ?? DEFAULT_TIMEOUT_MS,
+      },
     );
 
-    return response.data.access_token;
+    return readAccessToken(response.data, "Client credentials");
   } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new AprimoAuthCredentialsError(
-        `Client credentials auth failed: ${error.response?.status} ${error.response?.statusText}`,
-        { status: error.response?.status, cause: error },
-      );
-    }
-
-    throw new AprimoAuthError(
-      "Unexpected error during client credentials authentication",
-      { cause: error },
-    );
+    throw toAuthError(error, "Client credentials");
   }
 }
 
@@ -90,6 +89,7 @@ export async function getPasswordToken(
   clientSecret: string,
   username: string,
   password: string,
+  timeout?: number,
 ): Promise<string> {
   try {
     const response = await axios.post(
@@ -102,20 +102,61 @@ export async function getPasswordToken(
         password,
         scope: "api",
       }),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } },
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        timeout: timeout ?? DEFAULT_TIMEOUT_MS,
+      },
     );
 
-    return response.data.access_token;
+    return readAccessToken(response.data, "Password flow");
   } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new AprimoAuthCredentialsError(
-        `Password flow auth failed: ${error.response?.status} ${error.response?.statusText}`,
-        { status: error.response?.status, cause: error },
+    throw toAuthError(error, "Password flow");
+  }
+}
+
+/**
+ * Pull `access_token` out of a token-endpoint response. A 2xx response without
+ * a usable token would otherwise be handed straight to the HTTP layer and sent
+ * as the literal header `Authorization: Bearer undefined`, surfacing later as a
+ * confusing 401 instead of an auth failure at the point of origin.
+ */
+function readAccessToken(data: unknown, flow: string): string {
+  const token = (data as { access_token?: unknown } | undefined)?.access_token;
+
+  if (typeof token !== "string" || token.length === 0) {
+    throw new AprimoAuthError(
+      `${flow} auth failed: token endpoint returned no access_token`,
+      { raw: data },
+    );
+  }
+
+  return token;
+}
+
+/**
+ * Normalize anything thrown while requesting a token. A response-bearing axios
+ * error means the credentials were rejected; a response-less one (timeout, DNS,
+ * refused connection) is a transport failure and must not be reported as bad
+ * credentials.
+ */
+function toAuthError(error: unknown, flow: string): AprimoError {
+  if (error instanceof AprimoError) return error;
+
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      return new AprimoAuthCredentialsError(
+        `${flow} auth failed: ${error.response.status} ${error.response.statusText}`,
+        { status: error.response.status, cause: error },
       );
     }
 
-    throw new AprimoAuthError("Unexpected error during password authentication", {
-      cause: error,
-    });
+    return new AprimoAuthError(
+      `${flow} auth request failed: ${error.message}`,
+      { cause: error },
+    );
   }
+
+  return new AprimoAuthError(`Unexpected error during ${flow} authentication`, {
+    cause: error,
+  });
 }

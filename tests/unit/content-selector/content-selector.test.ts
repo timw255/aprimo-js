@@ -4,6 +4,27 @@ import {
   ContentSelectorResult,
 } from "../../../src/content-selector";
 
+/** The browser globals the Content Selector reaches for, stubbed onto Node. */
+interface WindowStub {
+  open: ReturnType<typeof vi.fn>;
+  addEventListener: ReturnType<typeof vi.fn>;
+  removeEventListener: ReturnType<typeof vi.fn>;
+  btoa: (str: string) => string;
+}
+
+/** The message listener the selector registers, as the tests invoke it. */
+type CapturedListener = (event: { origin: string; data: unknown }) => void;
+
+// `globalThis.window` is declared non-optional by the DOM lib that
+// `content-selector.ts` references, so drop it before redeclaring it as an
+// optional stub the tests can assign and `delete`.
+const globalWithWindow = globalThis as unknown as Omit<
+  typeof globalThis,
+  "window"
+> & {
+  window?: WindowStub;
+};
+
 describe("contentSelector", () => {
   const mockOpen = vi.fn();
   const mockAddEventListener = vi.fn();
@@ -12,7 +33,7 @@ describe("contentSelector", () => {
   beforeEach(() => {
     vi.resetAllMocks();
 
-    (globalThis as any).window = {
+    globalWithWindow.window = {
       open: mockOpen,
       addEventListener: mockAddEventListener,
       removeEventListener: mockRemoveEventListener,
@@ -21,11 +42,11 @@ describe("contentSelector", () => {
   });
 
   afterEach(() => {
-    delete (globalThis as any).window;
+    delete globalWithWindow.window;
   });
 
   it("throws if called outside the browser", () => {
-    delete (globalThis as any).window;
+    delete globalWithWindow.window;
 
     const selector = contentSelector("mytenant");
 
@@ -87,7 +108,7 @@ describe("contentSelector", () => {
     const selector = contentSelector("mytenant");
 
     const mockCallback = vi.fn();
-    let capturedListener: any = null;
+    let capturedListener: CapturedListener | null = null;
 
     mockAddEventListener.mockImplementation((_event, listener) => {
       capturedListener = listener;
@@ -100,7 +121,7 @@ describe("contentSelector", () => {
       selection: [{ id: "abc", title: "Test" }],
     };
 
-    capturedListener({
+    capturedListener!({
       origin: "https://mytenant.dam.aprimo.com",
       data: result,
     });
@@ -115,7 +136,7 @@ describe("contentSelector", () => {
   it("ignores messages from wrong origin or missing result", () => {
     const selector = contentSelector("mytenant");
     const mockCallback = vi.fn();
-    let capturedListener: any = null;
+    let capturedListener: CapturedListener | null = null;
 
     mockAddEventListener.mockImplementation((_event, listener) => {
       capturedListener = listener;
@@ -123,11 +144,11 @@ describe("contentSelector", () => {
 
     selector.open({ title: "Select" }, mockCallback);
 
-    capturedListener({
+    capturedListener!({
       origin: "https://other.dam.aprimo.com",
       data: { result: "accept" },
     });
-    capturedListener({ origin: "https://mytenant.dam.aprimo.com", data: null });
+    capturedListener!({ origin: "https://mytenant.dam.aprimo.com", data: null });
 
     expect(mockCallback).not.toHaveBeenCalled();
   });

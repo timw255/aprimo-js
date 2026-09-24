@@ -4,22 +4,30 @@ import { HttpClient } from "../../../src/http";
 import { AprimoError, AprimoAuthCredentialsError } from "../../../src/errors";
 
 vi.mock("axios");
-(axios as any).isAxiosError = (e: any): e is AxiosError =>
-  e.isAxiosError === true;
+
+type RequestMock = ReturnType<typeof vi.fn>;
+
+/** The slice of the mocked axios module these tests reassign. */
+interface AxiosTestDouble {
+  isAxiosError: (error: unknown) => boolean;
+  create: () => { request: RequestMock };
+}
 
 // HttpClient uses a private `axios.create()` instance; route its `.request`
 // through a shared mock the tests can reconfigure per case.
-const mockedAxios = { request: vi.fn() } as {
-  request: ReturnType<typeof vi.fn>;
-};
-(axios as any).create = vi.fn(() => mockedAxios);
+const mockedAxios: { request: RequestMock } = { request: vi.fn() };
+
+const axiosDouble = axios as unknown as AxiosTestDouble;
+axiosDouble.isAxiosError = (error) =>
+  (error as { isAxiosError?: boolean } | null)?.isAxiosError === true;
+axiosDouble.create = vi.fn(() => mockedAxios);
 
 let tokenProvider: ReturnType<typeof vi.fn>;
 let client: HttpClient;
 
 beforeEach(() => {
   vi.resetAllMocks();
-  (axios as any).create = vi.fn(() => mockedAxios);
+  axiosDouble.create = vi.fn(() => mockedAxios);
   tokenProvider = vi.fn().mockResolvedValue("mock-token");
   client = new HttpClient(tokenProvider, "https://api.test.com", {
     "X-App-Header": "static-header",
@@ -80,6 +88,29 @@ describe("HttpClient", () => {
 
     const config = mockedAxios.request.mock.calls[0][0];
     expect(config.headers["Content-Type"]).toBeUndefined();
+  });
+
+  it("strips an inherited or caller-supplied Content-Type for FormData", async () => {
+    // The DAM client sets `Content-Type: application/json` as a base header.
+    // If it survives onto a FormData request, axios JSON-serializes the body
+    // and the file bytes never leave the process.
+    const dam = new HttpClient(tokenProvider, "https://api.test.com", {
+      "API-VERSION": "1",
+      "Content-Type": "application/json",
+    });
+    mockedAxios.request = vi
+      .fn()
+      .mockResolvedValue({ status: 200, data: {} });
+
+    await dam.post("/upload", new FormData());
+    await dam.post("/upload", new FormData(), { "content-type": "text/plain" });
+
+    for (const [config] of mockedAxios.request.mock.calls) {
+      const contentTypeKeys = Object.keys(config.headers).filter(
+        (k) => k.toLowerCase() === "content-type",
+      );
+      expect(contentTypeKeys).toEqual([]);
+    }
   });
 
   it("handles error with response gracefully", async () => {
@@ -271,6 +302,54 @@ describe("HttpClient", () => {
     expect(res.ok).toBe(false);
     expect(res.error?.type).toBe("TimeoutError");
     expect(res.status).toBe(0);
+  });
+
+  it("backs off before retrying a 429 instead of hammering immediately", async () => {
+    const err429 = createAxiosError();
+    err429.response!.status = 429;
+
+    mockedAxios.request = vi
+      .fn()
+      .mockRejectedValueOnce(err429)
+      .mockResolvedValueOnce({ status: 200, data: {} });
+
+    client = new HttpClient(
+      tokenProvider,
+      "https://api.test.com",
+      {},
+      { maxRetries: 1 },
+    );
+
+    const start = Date.now();
+    const res = await client.get("/retry");
+
+    expect(res.ok).toBe(true);
+    expect(Date.now() - start).toBeGreaterThanOrEqual(400);
+  });
+
+  it("honors Retry-After instead of its own backoff", async () => {
+    const err429 = createAxiosError();
+    err429.response!.status = 429;
+    err429.response!.headers = { "retry-after": "0" };
+
+    mockedAxios.request = vi
+      .fn()
+      .mockRejectedValueOnce(err429)
+      .mockResolvedValueOnce({ status: 200, data: {} });
+
+    client = new HttpClient(
+      tokenProvider,
+      "https://api.test.com",
+      {},
+      { maxRetries: 1 },
+    );
+
+    const start = Date.now();
+    const res = await client.get("/retry");
+
+    // `Retry-After: 0` means "go now", so the default backoff must not apply.
+    expect(res.ok).toBe(true);
+    expect(Date.now() - start).toBeLessThan(400);
   });
 
   it("rejects a negative maxRetries at construction", () => {

@@ -39,11 +39,16 @@ export type CreateClientOptions = {
   environment: string;
   /**
    * Whole-request timeout in milliseconds applied to every request (includes
-   * upload/download time). Defaults to 30000. Pass `0` to disable. Uploads
-   * opt out of this default internally so large transfers are not clipped.
+   * upload/download time) and to token acquisition. Defaults to 30000. Pass
+   * `0` to disable. Uploads opt out of this default internally so large
+   * transfers are not clipped.
    */
   timeout?: number;
-  /** Maximum number of retries for retryable (HTTP 429) responses. */
+  /**
+   * Maximum number of retries for retryable (HTTP 429) responses. Retries are
+   * spaced out using the response's `Retry-After` header when present, and
+   * exponential backoff otherwise.
+   */
   maxRetries?: number;
   /**
    * Called before each retry with the error and 1-based attempt number.
@@ -84,12 +89,19 @@ export function createClient(options: CreateClientOptions): Aprimo {
   if (options.type === "client_credentials") {
     const { clientId, clientSecret } = options;
     tokenProvider = cacheTokenProvider(() =>
-      getClientCredentialsToken(environment, clientId, clientSecret),
+      getClientCredentialsToken(environment, clientId, clientSecret, timeout),
     );
   } else if (options.type === "password") {
     const { clientId, clientSecret, username, password } = options;
     tokenProvider = cacheTokenProvider(() =>
-      getPasswordToken(environment, clientId, clientSecret, username, password),
+      getPasswordToken(
+        environment,
+        clientId,
+        clientSecret,
+        username,
+        password,
+        timeout,
+      ),
     );
   } else if (options.type === "custom") {
     tokenProvider = options.tokenProvider;

@@ -6,6 +6,8 @@
  */
 
 export * from "./AccessList";
+export * from "./ActionType";
+export * from "./ActionTypeCollection";
 export * from "./AdditionalFile";
 export * from "./AdditionalFileCollection";
 export * from "./AdditionalFilePreview";

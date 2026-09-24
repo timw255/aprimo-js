@@ -89,12 +89,16 @@ export const uploader = (client: HttpClient) => ({
   ): Promise<ApiResult<UploadTokenResponse>> => {
     const segmentSize = 20 * 1024 * 1024;
     const hasCustomOptions = Object.keys(options).length > 0;
-    const shouldUseLargeUpload = file.size > segmentSize || hasCustomOptions;
+    // An empty file has nothing to segment, so it always takes the single-shot
+    // path — the segmented path would otherwise have zero segments to upload
+    // and never settle.
+    const shouldUseLargeUpload =
+      file.size > 0 && (file.size > segmentSize || hasCustomOptions);
 
     if (shouldUseLargeUpload) {
       return await uploadLargeFile(client, file, options);
     } else {
-      return await uploadSmallFile(client, file);
+      return await uploadSmallFile(client, file, options);
     }
   },
 });
@@ -102,6 +106,7 @@ export const uploader = (client: HttpClient) => ({
 const uploadSmallFile = async (
   client: HttpClient,
   file: File,
+  options: UploadOptions = {},
 ): Promise<ApiResult<UploadTokenResponse>> => {
   const formData = new FormData();
 
@@ -109,7 +114,10 @@ const uploadSmallFile = async (
 
   // Disable the whole-request timeout: this single request carries the entire
   // file, so a slow uplink would otherwise trip the client default.
-  return client.post("/uploads", formData, undefined, { timeout: 0 });
+  return client.post("/uploads", formData, undefined, {
+    timeout: 0,
+    signal: options.signal,
+  });
 };
 
 const uploadLargeFile = async (
@@ -134,12 +142,17 @@ const uploadLargeFile = async (
   }
 
   const uploadPath = new URL(setupRes.data.uri).pathname;
-  const segmentSize = (options?.segmentSize ?? 20) * 1024 * 1024;
+  // Clamp both knobs: a non-positive `segmentSize` yields an infinite segment
+  // count and a non-positive `parallelLimit` starts no workers at all, either
+  // of which would leave the returned promise pending forever.
+  const segmentSizeMb =
+    options.segmentSize && options.segmentSize > 0 ? options.segmentSize : 20;
+  const segmentSize = segmentSizeMb * 1024 * 1024;
   const segmentCount = Math.ceil(file.size / segmentSize);
   const uploaded = new Set<number>();
-  const concurrency = options.parallelLimit ?? 1;
+  const concurrency = Math.max(1, Math.floor(options.parallelLimit ?? 1));
   let currentIndex = 0;
-  let cancelled = false;
+  let settled = false;
 
   const signal = options.signal;
 
@@ -153,9 +166,28 @@ const uploadLargeFile = async (
       return;
     }
 
-    const cancelUpload = async () => {
-      cancelled = true;
+    /**
+     * Settle the upload exactly once. Flipping `settled` before resolving is
+     * what stops the sibling workers: without it they keep POSTing segments
+     * long after the caller has been handed a failure.
+     */
+    const finish = (result: ApiResult<UploadTokenResponse>) => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener("abort", onAbort);
+      resolve(result);
+    };
+
+    /** Abandon the partial upload server-side. Best effort. */
+    const discardUpload = async () => {
       await client.delete(uploadPath);
+    };
+
+    const cancelUpload = async () => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener("abort", onAbort);
+      await discardUpload();
       resolve({
         ok: false,
         status: 499,
@@ -163,14 +195,14 @@ const uploadLargeFile = async (
       });
     };
 
-    const onAbort = () => {
-      cancelUpload();
-    };
+    function onAbort() {
+      void cancelUpload();
+    }
 
     signal?.addEventListener("abort", onAbort);
 
     const uploadNext = async () => {
-      if (signal?.aborted || cancelled) return;
+      if (settled) return;
 
       const index = currentIndex++;
       if (index >= segmentCount) return;
@@ -190,10 +222,14 @@ const uploadLargeFile = async (
         { timeout: 0, signal },
       );
 
-      if (signal?.aborted || cancelled) return;
+      if (settled) return;
 
       if (!res.ok) {
+        // Claim the result first so the other workers stop, then abandon the
+        // partial upload rather than leaving orphaned segments on the server.
+        settled = true;
         signal?.removeEventListener("abort", onAbort);
+        await discardUpload();
         resolve({
           ok: false,
           status: res.status,
@@ -206,7 +242,12 @@ const uploadLargeFile = async (
       }
 
       uploaded.add(index);
-      options.onProgress?.(uploaded.size, segmentCount);
+      try {
+        options.onProgress?.(uploaded.size, segmentCount);
+      } catch {
+        // A throwing progress callback is the caller's problem, not grounds
+        // for abandoning an upload that is otherwise succeeding.
+      }
 
       if (uploaded.size === segmentCount) {
         // Commit can take a while server-side while segments are assembled.
@@ -221,10 +262,9 @@ const uploadLargeFile = async (
         );
         // An abort during commit is resolved by onAbort as a cancellation;
         // don't also report it as a commit failure.
-        if (signal?.aborted || cancelled) return;
-        signal?.removeEventListener("abort", onAbort);
+        if (settled) return;
         if (!commitRes.ok) {
-          resolve({
+          finish({
             ok: false,
             status: commitRes.status,
             error: new AprimoUploadCommitError(
@@ -234,15 +274,15 @@ const uploadLargeFile = async (
           });
           return;
         }
-        resolve(commitRes);
+        finish(commitRes);
         return;
       }
 
-      uploadNext();
+      void uploadNext();
     };
 
     for (let i = 0; i < concurrency && i < segmentCount; i++) {
-      uploadNext();
+      void uploadNext();
     }
   });
 };

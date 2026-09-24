@@ -294,6 +294,57 @@ export const classifications = (client: HttpClient) => ({
   },
 
   /**
+   * Read the user-group permissions assigned on a classification subtree —
+   * the read counterpart of `updateTreePermissions`.
+   *
+   * Distinct from `getTreePermission` (singular), which reports what the
+   * *current user* may do rather than listing the assigned user-group entries.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.classifications.getTreePermissions(id);
+   * res.data?.permissions.forEach((p) => console.log(p.userGroupId, p.accessRight));
+   * ```
+   */
+  getTreePermissions: async (
+    id: string,
+  ): Promise<ApiResult<ClassificationPermissions>> => {
+    return client.get(
+      `/api/core/classification/${id}/classificationtreepermissions`,
+    );
+  },
+
+  /**
+   * Read the per-record permissions assigned to records in this classification —
+   * the read counterpart of `updateRecordPermissions`.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.classifications.getRecordPermissions(id);
+   * ```
+   */
+  getRecordPermissions: async (
+    id: string,
+  ): Promise<ApiResult<ClassificationPermissions>> => {
+    return client.get(`/api/core/classification/${id}/recordpermissions`);
+  },
+
+  /**
+   * Read the download permissions for records in this classification — the
+   * read counterpart of `updateDownloadPermissions`.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.classifications.getDownloadPermissions(id);
+   * ```
+   */
+  getDownloadPermissions: async (
+    id: string,
+  ): Promise<ApiResult<ClassificationDownloadPermissions>> => {
+    return client.get(`/api/core/classification/${id}/downloadpermissions`);
+  },
+
+  /**
    * Replace the user-group permissions on a classification subtree.
    *
    * @param id - Classification id.

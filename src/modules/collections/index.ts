@@ -4,6 +4,7 @@ import { Collection } from "../../model/Collection";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
+import { RecordCollection } from "../../model/RecordCollection";
 import { Expander } from "../../expander";
 import { SetActions } from "../../model";
 
@@ -45,6 +46,20 @@ export interface CreateCollectionResponse {
 
 export interface UpdateStaticCollectionRecordsRequest {
   records: SetActions<string>;
+}
+
+/**
+ * Payload for updating a collection. Every property is optional — include only
+ * what you want to change. `searchExpression` applies to dynamic collections.
+ */
+export interface UpdateCollectionRequest {
+  name?: string;
+  description?: string;
+  status?: "Active" | "Archived" | "Deleted";
+  tag?: string;
+  searchAllLanguages?: boolean;
+  searchExpression?: SearchExpression;
+  allowAutoAccess?: boolean;
 }
 
 export const collections = (client: HttpClient) => ({
@@ -173,6 +188,46 @@ export const collections = (client: HttpClient) => ({
       ...request,
       type: "dynamic",
     });
+  },
+
+  /**
+   * Update a collection. Include only the fields you want to change.
+   *
+   * @example
+   * ```ts
+   * await aprimo.collections.update(collectionId, { name: "Renamed" });
+   * ```
+   */
+  update: async (
+    id: string,
+    request: UpdateCollectionRequest,
+  ): Promise<ApiResult<void>> => {
+    return client.put(`/api/core/collection/${id}`, request);
+  },
+
+  /**
+   * List the records belonging to a collection.
+   *
+   * Supported for **static** collections only — the API returns HTTP 500 for a
+   * dynamic collection. Query a dynamic collection's membership with
+   * `aprimo.search.records(...)` using its search expression instead.
+   *
+   * @param id - Collection id.
+   * @param expander - Optional `Expander` chain applied to each record.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.collections.getRecords(collectionId);
+   * console.log(res.data?.items?.length);
+   * ```
+   */
+  getRecords: async (
+    id: string,
+    expander?: Expander,
+  ): Promise<ApiResult<RecordCollection>> => {
+    const headers = buildHeaders(undefined, expander);
+
+    return client.get(`/api/core/collection/${id}/records`, headers);
   },
 
   /**
