@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, it, expect } from "vitest";
-import { expectOk, logShape } from "../../utils";
+import { eventually, expectOk, logShape } from "../../utils";
 import { createClient, Expander } from "../../../src";
 import type { Classification } from "../../../src/model/Classification";
 
@@ -89,8 +89,10 @@ describe("classifications integration", () => {
   });
 
   it("reads back the record permissions", async () => {
-    const res =
-      await aprimo.classifications.getRecordPermissions(classificationId);
+    const res = await eventually(
+      () => aprimo.classifications.getRecordPermissions(classificationId),
+      (d) => !!d?.permissions?.some((p) => p.userGroupId === userGroupId),
+    );
     expectOk(res);
     logShape("classifications.getRecordPermissions", res.data);
     expect(res.data?.breakInheritance).toBe(false);
@@ -114,8 +116,10 @@ describe("classifications integration", () => {
   });
 
   it("reads back the tree permissions", async () => {
-    const res =
-      await aprimo.classifications.getTreePermissions(classificationId);
+    const res = await eventually(
+      () => aprimo.classifications.getTreePermissions(classificationId),
+      (d) => !!d?.permissions?.some((p) => p.userGroupId === userGroupId),
+    );
     expectOk(res);
     logShape("classifications.getTreePermissions", res.data);
     expect(
@@ -138,8 +142,10 @@ describe("classifications integration", () => {
   });
 
   it("reads back the download permissions", async () => {
-    const res =
-      await aprimo.classifications.getDownloadPermissions(classificationId);
+    const res = await eventually(
+      () => aprimo.classifications.getDownloadPermissions(classificationId),
+      (d) => !!d?.permissions?.some((p) => p.userGroupId === userGroupId),
+    );
     expectOk(res);
     logShape("classifications.getDownloadPermissions", res.data);
     expect(

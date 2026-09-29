@@ -6,9 +6,9 @@ import { User } from "./User";
 /**
  * Representation of a public CDN order.
  *
- * Pass an {@link Expander} chain `for<PublicCdnOrder>("PublicCdnOrder")` to
- * populate related resources under `_embedded`. Expandable keys: `targets`,
- * `createdby`.
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<PublicCdnOrder>("PublicCdnOrder").expand(...)`.
+ * Expandable keys: `targets`, `createdby`.
  */
 export interface PublicCdnOrder {
   /** Gets the creation datetime in UTC time. Format: date-time. */

@@ -1,7 +1,7 @@
 import { ApiLink } from "./ApiLink";
 
 /**
- * Scope of a setting (SDK-only convenience type; no matching enum schema in dam.yaml).
+ * Scope of a setting (SDK-only convenience type; the API has no matching enum).
  */
 export type SettingScope = "user" | "usergroup" | "site" | "system";
 

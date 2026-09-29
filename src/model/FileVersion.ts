@@ -18,11 +18,12 @@ import { Watermark } from "./Watermark";
 /**
  * Representation of a specific version of a file attached to a record.
  *
- * Pass an {@link Expander} chain `for<FileVersion>("FileVersion")` to populate
- * related resources under `_embedded`. Expandable keys: `filetype`,
- * `filepreviews`, `masterfilepreview`, `preview`, `thumbnail`, `additionalfiles`,
- * `renditions`, `publiclinks`, `watermark`, `publicuris`, `permissions`,
- * `usedin`, `contains`, `createdby`.
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<FileVersion>("FileVersion").expand(...)`.
+ * Expandable keys: `filetype`, `filepreviews`, `masterfilepreview`,
+ * `preview`, `thumbnail`, `additionalfiles`, `renditions`, `publiclinks`,
+ * `watermark`, `publicuris`, `permissions`, `usedin`, `contains`,
+ * `createdby`.
  */
 export interface FileVersion {
   /**

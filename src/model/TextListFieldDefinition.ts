@@ -6,7 +6,7 @@ import { User } from "./User";
  * Representation of the definition of a TextListField. The value is an array of
  * text values.
  *
- * Spec schema: `Textlistfielddefinition`. Discriminator value: `dataType = "textlist"`.
+ * Discriminator value: `dataType = "textlist"`.
  */
 export interface TextListFieldDefinition extends BaseFieldDefinition {
   /** Indicates whether to allow AI enhancement. */

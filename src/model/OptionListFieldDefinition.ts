@@ -10,7 +10,7 @@ export type OptionListSortOrder = "Label" | "Name" | "SortIndex";
  * Representation of the definition of an OptionListField. Selection from predefined
  * options; values are stored as GUIDs referencing {@link OptionListItemDefinition}s.
  *
- * Spec schema: `Optionlistfielddefinition`. Discriminator value: `dataType = "optionlist"`.
+ * Discriminator value: `dataType = "optionlist"`.
  */
 export interface OptionListFieldDefinition extends BaseFieldDefinition {
   /** Whether multiple options can be selected. */

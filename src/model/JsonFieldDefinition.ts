@@ -5,7 +5,7 @@ import { User } from "./User";
 /**
  * Representation of the definition of a JsonField. The value is JSON content.
  *
- * Spec schema: `Jsonfielddefinition`. Discriminator value: `dataType = "json"`.
+ * Discriminator value: `dataType = "json"`.
  * The schema declares no properties beyond those inherited from the base field definition.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

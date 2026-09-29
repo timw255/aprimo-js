@@ -1,9 +1,5 @@
 /**
  * Language-specific values for a UserGroupListField.
- *
- * Note: spec defines parallel TitleCase (`UserGroupListFieldValues`) and
- * lowercase (`Usergrouplistfieldvalues`) variants; the wrapper field schema
- * $refs the lowercase variant, which adds `aiInfluenced`.
  */
 export interface UserGroupListFieldValues {
   /** Indicates if the value was influenced by AI. */

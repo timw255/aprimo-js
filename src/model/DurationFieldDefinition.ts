@@ -6,7 +6,7 @@ import { User } from "./User";
  * Representation of the definition of a DurationField. The value is a duration in
  * `[-][d.]hh:mm:ss[.fffffff]` format.
  *
- * Spec schema: `Durationfielddefinition`. Discriminator value: `dataType = "duration"`.
+ * Discriminator value: `dataType = "duration"`.
  * The schema declares no properties beyond those inherited from the base field definition.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

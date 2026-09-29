@@ -6,7 +6,7 @@ import { User } from "./User";
  * Representation of the definition of a LanguageListField. References to languages
  * (values are stored as GUIDs).
  *
- * Spec schema: `Languagelistfielddefinition`. Discriminator value: `dataType = "languagelist"`.
+ * Discriminator value: `dataType = "languagelist"`.
  * The schema declares no properties beyond those inherited from the base field definition.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

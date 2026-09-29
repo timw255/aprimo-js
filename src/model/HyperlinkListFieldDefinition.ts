@@ -6,7 +6,7 @@ import { User } from "./User";
  * Representation of the definition of a HyperlinkListField. The value is a
  * collection of URL + display text pairs.
  *
- * Spec schema: `Hyperlinklistfielddefinition`. Discriminator value: `dataType = "hyperlinklist"`.
+ * Discriminator value: `dataType = "hyperlinklist"`.
  * The schema declares no properties beyond those inherited from the base field definition.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

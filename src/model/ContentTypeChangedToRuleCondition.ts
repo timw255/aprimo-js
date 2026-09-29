@@ -1,7 +1,6 @@
 /**
- * Representation of Content Type Set To rule condition (matched to spec schema `Contenttypechangedtorulecondition`,
- * discriminator value `contenttypesetto`).
- * (Spec description text reads "Representation of Object Changed rule condition" — likely a copy-paste in the spec.)
+ * Representation of Content Type Set To rule condition (discriminator value
+ * `contenttypesetto`).
  */
 export interface ContentTypeChangedToRuleCondition {
   /**

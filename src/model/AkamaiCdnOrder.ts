@@ -4,8 +4,7 @@ import { OrderTargetCollection } from "./OrderTargetCollection";
 import { User } from "./User";
 
 /**
- * Representation of an Akamai CDN order. (Spec describes this as an "aspera
- * order" — likely a copy-paste artefact in the spec.)
+ * Representation of an Akamai CDN order.
  */
 export interface AkamaiCdnOrder {
   /** Gets the creation datetime in UTC time. Format: date-time. */

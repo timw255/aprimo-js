@@ -20,7 +20,7 @@ export type RecordLinkType =
  * Representation of the definition of a RecordLinkField. Parent/child/link
  * relationships to other records.
  *
- * Spec schema: `Recordlinkfielddefinition`. Discriminator value: `dataType = "recordlink"`.
+ * Discriminator value: `dataType = "recordlink"`.
  */
 export interface RecordLinkFieldDefinition extends BaseFieldDefinition {
   /** Classification IDs that limit which records can be used as children. A record must be classified in at least one. */

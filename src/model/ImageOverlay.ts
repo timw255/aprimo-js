@@ -14,7 +14,7 @@ export interface ImageOverlay {
   id: number;
   /** The date when this overlay was updated. Format: date-time. */
   modifiedOn: string;
-  /** The display name (the spec describes this field as the "Comments" of this overlay). */
+  /** The display name (the API describes this field as the "Comments" of this overlay). */
   name: string;
   _links: ImageOverlayLinks;
   _embedded?: {

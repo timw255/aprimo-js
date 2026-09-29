@@ -108,12 +108,12 @@ export type ResetToDefaultTrigger =
 /**
  * Common base properties shared by every concrete `FieldDefinition` subtype.
  *
- * Pass an {@link Expander} chain `for<BaseFieldDefinition>("Fielddefinition")`
- * to populate related resources under `_embedded`. Expandable keys:
- * `createdby`, `modifiedby`.
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<BaseFieldDefinition>("Fielddefinition").expand(...)`.
+ * Expandable keys: `createdby`, `modifiedby`.
  *
- * The OpenAPI spec does not declare a `BaseFieldDefinition` schema; it inlines
- * these properties into each concrete subtype.
+ * This is an SDK-side base type. The API inlines these properties into each
+ * concrete field-definition type rather than exposing a shared one.
  */
 export interface BaseFieldDefinition {
   /**

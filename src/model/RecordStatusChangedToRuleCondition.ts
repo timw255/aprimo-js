@@ -1,6 +1,5 @@
 /**
- * Representation of record status set to rule condition (matched to spec schema
- * `Recordstatuschangedtorulecondition`, discriminator value `recordstatussetto`).
+ * Representation of record status set to rule condition (discriminator value `recordstatussetto`).
  */
 export interface RecordStatusChangedToRuleCondition {
   /**

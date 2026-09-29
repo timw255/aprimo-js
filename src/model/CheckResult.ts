@@ -2,7 +2,7 @@ import { ApiLink } from "./ApiLink";
 import { CheckFindingCollection } from "./CheckFindingCollection";
 
 /**
- * Outcome of a check or finding. Narrowed by the SDK; the spec models this as a free-form string.
+ * Outcome of a check or finding. Narrowed by the SDK; the API returns it as a free-form string.
  */
 export type CheckOutcome = "pass" | "fail" | "warning" | "info";
 

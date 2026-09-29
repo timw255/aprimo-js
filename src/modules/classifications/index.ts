@@ -3,8 +3,12 @@ import { buildHeaders } from "../../utils";
 import { Classification } from "../../model/Classification";
 import { ClassificationDownloadPermissions } from "../../model/ClassificationDownloadPermissions";
 import { ClassificationPermissions } from "../../model/ClassificationPermissions";
+import { ClassificationRecordPermissions } from "../../model/ClassificationRecordPermissions";
 import { ClassificationUserGroupDownloadPermission } from "../../model/ClassificationUserGroupDownloadPermission";
-import { ClassificationUserGroupPermission } from "../../model/ClassificationUserGroupPermission";
+import {
+  ClassificationUserGroupPermission,
+  ClassificationUserGroupRecordPermission,
+} from "../../model/ClassificationUserGroupPermission";
 import { ClassificationUserPermissions } from "../../model/ClassificationUserPermissions";
 import { SetActions } from "../../model/SetActions";
 import { Field } from "../../model/Field";
@@ -54,13 +58,33 @@ type FieldUpdateFor<F> = F extends {
  */
 export type ClassificationFieldUpdate = FieldUpdateFor<Field>;
 
-export type CreateClassificationRequest = Omit<
+/**
+ * Where a new classification is attached. The API requires exactly one of
+ * these — omitting all three fails with "When creating a classification, you
+ * need to specify at least a parentId, parentNamePath or isRoot property".
+ */
+export type ClassificationParent =
+  | { isRoot: true; parentId?: never; parentNamePath?: never }
+  | { parentId: string; isRoot?: never; parentNamePath?: never }
+  | {
+      /** Slash-separated internal name path of the parent, e.g. `"Brands/EMEA"`. */
+      parentNamePath: string;
+      isRoot?: never;
+      parentId?: never;
+    };
+
+type CreateClassificationFields = Omit<
   CreateFrom<Classification>,
   | "registeredFields"
   | "registeredFieldGroups"
   | "followerclassifications"
   | "slaveclassifications"
+  | "isRoot"
+  | "parentId"
+  | "name"
 > & {
+  /** Internal (non-localized) name. Required — the API rejects a create without it. */
+  name: string;
   registeredFields?: SetActions<string>;
   registeredFieldGroups?: SetActions<string>;
   followerclassifications?: SetActions<string>;
@@ -73,25 +97,47 @@ export type CreateClassificationRequest = Omit<
   fields?: SetActions<ClassificationFieldUpdate>;
 };
 
+export type CreateClassificationRequest = CreateClassificationFields &
+  ClassificationParent;
+
 export type UpdateClassificationRequest = Partial<
-  Omit<
-    CreateClassificationRequest,
-    "namePath" | "labelPath" | "parentId" | "isRoot"
-  >
+  Omit<CreateClassificationFields, "namePath" | "labelPath">
 >;
 
 export interface CreateClassificationResponse {
   id: string;
 }
 
-export interface UpdateClassificationPermissionsRequest {
+/**
+ * Add/remove envelope for permission entries. Unlike the general
+ * {@link SetActions}, `remove` takes only the `userGroupId` — the API does not
+ * need (or look at) an `accessRight` to drop an entry.
+ */
+export interface ClassificationPermissionActions<T> {
+  /** Entries to assign or overwrite. */
+  addOrUpdate?: T[];
+  /** Groups whose explicit entry should be removed. */
+  remove?: { userGroupId: string }[];
+}
+
+/** Payload for `updateTreePermissions`. */
+export interface UpdateClassificationTreePermissionsRequest {
   breakInheritance: boolean;
-  permissions: SetActions<ClassificationUserGroupPermission>;
+  permissions: ClassificationPermissionActions<ClassificationUserGroupPermission>;
+}
+
+/**
+ * Payload for `updateRecordPermissions`. Record rights exclude a bare
+ * `Classify` — see {@link ClassificationRecordAccessRight}.
+ */
+export interface UpdateClassificationRecordPermissionsRequest {
+  breakInheritance: boolean;
+  permissions: ClassificationPermissionActions<ClassificationUserGroupRecordPermission>;
 }
 
 export interface UpdateClassificationDownloadPermissionsRequest {
   breakInheritance: boolean;
-  permissions: SetActions<ClassificationUserGroupDownloadPermission>;
+  permissions: ClassificationPermissionActions<ClassificationUserGroupDownloadPermission>;
 }
 
 export const classifications = (client: HttpClient) => ({
@@ -300,6 +346,11 @@ export const classifications = (client: HttpClient) => ({
    * Distinct from `getTreePermission` (singular), which reports what the
    * *current user* may do rather than listing the assigned user-group entries.
    *
+   * Returns 404 when the classification does not exist, or 200 with an empty
+   * `permissions` array when it exists but has no explicit entries. Expanding
+   * `classificationtreepermissions` instead reports both cases identically, as
+   * a missing `_embedded` key on a 200.
+   *
    * @example
    * ```ts
    * const res = await aprimo.classifications.getTreePermissions(id);
@@ -318,6 +369,9 @@ export const classifications = (client: HttpClient) => ({
    * Read the per-record permissions assigned to records in this classification —
    * the read counterpart of `updateRecordPermissions`.
    *
+   * Returns 404 when the classification does not exist, or 200 with an empty
+   * `permissions` array when it has no explicit entries.
+   *
    * @example
    * ```ts
    * const res = await aprimo.classifications.getRecordPermissions(id);
@@ -325,7 +379,7 @@ export const classifications = (client: HttpClient) => ({
    */
   getRecordPermissions: async (
     id: string,
-  ): Promise<ApiResult<ClassificationPermissions>> => {
+  ): Promise<ApiResult<ClassificationRecordPermissions>> => {
     return client.get(`/api/core/classification/${id}/recordpermissions`);
   },
 
@@ -351,18 +405,36 @@ export const classifications = (client: HttpClient) => ({
    * @param request - `breakInheritance` controls whether the subtree inherits
    *   from its parent; `permissions` is a `SetActions` of user-group entries.
    *
+   * Returns 204 with no body.
+   *
+   * @remarks
+   * - Writes are eventually consistent. A read issued immediately after this
+   *   call can return the previous set; allow a few seconds or poll.
+   * - `breakInheritance: true` also adds an `Administrators: FullControl`
+   *   entry. Setting it back to `false` removes that entry.
+   * - `accessRight: "Inherit"` deletes the group's entry rather than storing a
+   *   state; the group is absent from later reads. Equivalent to `remove`.
+   *
    * @example
    * ```ts
    * await aprimo.classifications.updateTreePermissions(id, {
    *   breakInheritance: true,
-   *   permissions: { addOrUpdate: [{ userGroupId, canRead: true }] },
+   *   permissions: { addOrUpdate: [{ userGroupId, accessRight: "Read" }] },
+   * });
+   * ```
+   *
+   * @example Drop a group's explicit entry:
+   * ```ts
+   * await aprimo.classifications.updateTreePermissions(id, {
+   *   breakInheritance: true,
+   *   permissions: { remove: [{ userGroupId }] },
    * });
    * ```
    */
   updateTreePermissions: async (
     id: string,
-    request: UpdateClassificationPermissionsRequest,
-  ): Promise<ApiResult<ClassificationPermissions>> => {
+    request: UpdateClassificationTreePermissionsRequest,
+  ): Promise<ApiResult<void>> => {
     return client.put(
       `/api/core/classification/${id}/classificationtreepermissions`,
       request,
@@ -372,18 +444,22 @@ export const classifications = (client: HttpClient) => ({
   /**
    * Replace the per-record permissions assigned to records in this classification.
    *
+   * Returns 204 with no body. Record rights exclude a bare `Classify`. The
+   * eventual-consistency, `breakInheritance` and `Inherit` behaviour described
+   * on `updateTreePermissions` applies here too.
+   *
    * @example
    * ```ts
    * await aprimo.classifications.updateRecordPermissions(id, {
    *   breakInheritance: false,
-   *   permissions: { addOrUpdate: [...] },
+   *   permissions: { addOrUpdate: [{ userGroupId, accessRight: "Read" }] },
    * });
    * ```
    */
   updateRecordPermissions: async (
     id: string,
-    request: UpdateClassificationPermissionsRequest,
-  ): Promise<ApiResult<ClassificationPermissions>> => {
+    request: UpdateClassificationRecordPermissionsRequest,
+  ): Promise<ApiResult<void>> => {
     return client.put(
       `/api/core/classification/${id}/recordpermissions`,
       request,
@@ -393,18 +469,23 @@ export const classifications = (client: HttpClient) => ({
   /**
    * Replace the download permissions for records in this classification.
    *
+   * Returns 204 with no body. Download rights are a separate set; record and
+   * tree rights are rejected here. The eventual-consistency,
+   * `breakInheritance` and `Inherit` behaviour described on
+   * `updateTreePermissions` applies here too.
+   *
    * @example
    * ```ts
    * await aprimo.classifications.updateDownloadPermissions(id, {
    *   breakInheritance: false,
-   *   permissions: { addOrUpdate: [...] },
+   *   permissions: { addOrUpdate: [{ userGroupId, accessRight: "Allow" }] },
    * });
    * ```
    */
   updateDownloadPermissions: async (
     id: string,
     request: UpdateClassificationDownloadPermissionsRequest,
-  ): Promise<ApiResult<ClassificationDownloadPermissions>> => {
+  ): Promise<ApiResult<void>> => {
     return client.put(
       `/api/core/classification/${id}/downloadpermissions`,
       request,

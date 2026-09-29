@@ -9,10 +9,10 @@ import { Watermark } from "./Watermark";
 /**
  * Representation of a File.
  *
- * Pass an {@link Expander} chain `for<File>("File")` to populate related
- * resources under `_embedded`. Expandable keys: `preview`, `thumbnail`,
- * `fileversions`, `latestfileversion`, `fields`, `checkedoutby`, `watermark`,
- * `createdby`.
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<File>("File").expand(...)`.
+ * Expandable keys: `preview`, `thumbnail`, `fileversions`,
+ * `latestfileversion`, `fields`, `checkedoutby`, `watermark`, `createdby`.
  */
 export interface File {
   /** Gets a value indicating whether the file is checked out. */

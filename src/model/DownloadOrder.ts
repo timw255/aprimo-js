@@ -6,9 +6,9 @@ import { User } from "./User";
 /**
  * Representation of a download order.
  *
- * Pass an {@link Expander} chain `for<DownloadOrder>("DownloadOrder")` to
- * populate related resources under `_embedded`. Expandable keys: `targets`,
- * `createdby`.
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<DownloadOrder>("DownloadOrder").expand(...)`.
+ * Expandable keys: `targets`, `createdby`.
  */
 export interface DownloadOrder {
   /** Gets the creation datetime in UTC time. Format: date-time. */

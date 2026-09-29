@@ -1,9 +1,5 @@
 /**
  * Language-specific values for a RecordListField.
- *
- * Note: spec defines parallel TitleCase (`RecordListFieldValues`) and lowercase
- * (`Recordlistfieldvalues`) variants; the wrapper field schema $refs the
- * lowercase variant, which adds `aiInfluenced`.
  */
 export interface RecordListFieldValues {
   /** Indicates if the value was influenced by AI. */

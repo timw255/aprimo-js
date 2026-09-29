@@ -46,6 +46,7 @@ export * from "./ClassificationListFieldDefinition";
 export * from "./ClassificationListFieldValues";
 export * from "./ClassificationMaintenanceTarget";
 export * from "./ClassificationPermissions";
+export * from "./ClassificationRecordPermissions";
 export * from "./ClassificationUnlinkedRuleCondition";
 export * from "./ClassificationUserGroupDownloadPermission";
 export * from "./ClassificationUserGroupPermission";

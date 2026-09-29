@@ -21,9 +21,9 @@ export type MaintenanceJobStatus =
 /**
  * Storage class for maintenance jobs in ADAM.
  *
- * Pass an {@link Expander} chain `for<MaintenanceJob>("MaintenanceJob")` to
- * populate related resources under `_embedded`. Expandable keys: `targets`,
- * `createdby`.
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<MaintenanceJob>("MaintenanceJob").expand(...)`.
+ * Expandable keys: `targets`, `createdby`.
  */
 export interface MaintenanceJob {
   /**

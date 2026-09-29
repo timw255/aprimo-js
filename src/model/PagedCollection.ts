@@ -2,11 +2,12 @@ import { ApiLink } from "./ApiLink";
 
 /**
  * SDK-internal generic helper that models the shape of a paged collection
- * response (items + paging metadata + HAL links). The Aprimo DAM spec defines
- * many concrete `*pagedcollection` schemas (e.g. `Settingcategorypagedcollection`,
- * `Translationpagedcollection`) that share this shape; this generic captures
- * the common envelope so concrete collection types can be expressed as
- * `PagedCollection<T>`.
+ * response (items + paging metadata + HAL links). Every paged DAM list
+ * endpoint returns this envelope, so concrete collection types are expressed
+ * as `PagedCollection<T>`.
+ *
+ * The server also returns a `nextCursor` for cursor-based paging on some
+ * endpoints, which this type does not model.
  */
 export interface PagedCollection<T, L = DefaultPagedLinks> {
   /** One page of items. */

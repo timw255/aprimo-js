@@ -19,7 +19,7 @@ import { UnclassifyRecordRuleAction } from "./UnclassifyRecordRuleAction";
 
 /**
  * Polymorphic union of rule action types, discriminated by `actionType`.
- * The spec defines each action type as a separate schema sharing the
+ * The API defines each action type as a separate shape sharing the
  * `actionType` discriminator enum.
  */
 export type RuleAction =
@@ -47,7 +47,7 @@ export type RuleAction =
 export interface RuleActionCollection {
   /** A collection of rule action items (various action types like ApplyWatermarkOnMasterFile, ClassifyRecordRuleAction, SendEmailRuleAction, etc.). */
   items: RuleAction[];
-  /** HAL `_links` block (SDK addition; not declared in spec). */
+  /** HAL `_links` block. */
   _links: RuleActionCollectionLinks;
 }
 

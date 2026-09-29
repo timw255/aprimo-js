@@ -61,9 +61,9 @@ export interface Rule {
   trigger: RuleTrigger;
   /** Gets the version of this rule. Format: int32. */
   version: number;
-  /** HAL `_links` for this rule (SDK addition; not declared in spec). */
+  /** HAL `_links` for this rule. */
   _links: RuleLinks;
-  /** HAL `_embedded` for this rule (SDK addition; not declared in spec). */
+  /** HAL `_embedded` for this rule. */
   _embedded?: {
     [K in Exclude<keyof RuleLinks, "self">]?: RuleLinks[K] extends ApiLink<
       infer R

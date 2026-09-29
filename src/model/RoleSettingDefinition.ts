@@ -6,7 +6,7 @@ import { User } from "./User";
 /**
  * Representation of a RoleSettingDefinition resource. The Role variant of
  * {@link SettingDefinition}; `dataType` is `"role"`. Note: this variant has
- * no `defaultValue` in the spec.
+ * no `defaultValue`.
  */
 export interface RoleSettingDefinition {
   /** Shows it the setting allows a system setting. */

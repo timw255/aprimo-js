@@ -1,9 +1,5 @@
 /**
  * Language-specific values for a UserListField.
- *
- * Note: spec defines parallel TitleCase (`UserListFieldValues`) and lowercase
- * (`Userlistfieldvalues`) variants; the wrapper field schema $refs the
- * lowercase variant, which adds `aiInfluenced`.
  */
 export interface UserListFieldValues {
   /** Indicates if the value was influenced by AI. */

@@ -12,12 +12,13 @@ import { User } from "./User";
 /**
  * Representation of a classification in the DAM taxonomy.
  *
- * Pass an {@link Expander} chain `for<Classification>("Classification")` to
- * populate related resources under `_embedded`. Expandable keys: `parent`,
- * `ancestors`, `children`, `image`, `fields`, `recordpermissions`,
- * `downloadpermissions`, `classificationtreepermissions`,
- * `slaveclassifications`, `followerclassifications`,
- * `classificationtreepermission`, `modifiedby`, `createdby`.
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<Classification>("Classification").expand(...)`.
+ * Expandable keys: `parent`, `ancestors`, `children`, `image`, `fields`,
+ * `recordpermissions`, `downloadpermissions`,
+ * `classificationtreepermissions`, `slaveclassifications`,
+ * `followerclassifications`, `classificationtreepermission`, `modifiedby`,
+ * `createdby`.
  */
 export interface Classification {
   /** The unique identifier (GUID) of this classification. */

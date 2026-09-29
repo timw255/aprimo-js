@@ -26,9 +26,9 @@ export type InheritanceConfiguration = "Custom" | "None";
 /**
  * Representation of a content type that defines the structure and behavior of records.
  *
- * Pass an {@link Expander} chain `for<ContentType>("ContentType")` to populate
- * related resources under `_embedded`. Expandable keys: `parent`, `modifiedby`,
- * `createdby`.
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<ContentType>("ContentType").expand(...)`.
+ * Expandable keys: `parent`, `modifiedby`, `createdby`.
  */
 export interface ContentType {
   /** The creation datetime in UTC time. Format: date-time. */

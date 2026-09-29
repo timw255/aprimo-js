@@ -14,9 +14,14 @@ import { User } from "./User";
 /**
  * Representation of a digital asset record in the DAM.
  *
- * Pass an {@link Expander} chain `for<Record>("Record")` to populate related
- * resources under `_embedded`. Expandable keys (rel → select-key, where they
- * differ):
+ * Expand related resources under `_embedded` with
+ * `Expander.create().for<Record>("Record").expand(...)`.
+ *
+ * Note: `Record` collides with TypeScript's built-in `Record<K, V>` utility
+ * type. Import it aliased — `import type { Record as AprimoRecord }` — or use
+ * the {@link AprimoRecord} alias exported alongside it.
+ *
+ * Expandable keys (rel → select-key, where they differ):
  * - `fields`, `files`, `preview`, `thumbnail`
  * - `masterfile`, `masterfilelatestversion`, `masterfilelatestpublishedversion`
  * - `classifications`, `accesslists`, `permissions`, `locks`
@@ -77,3 +82,17 @@ export interface RecordLinks {
   modifiedby: ApiLink<User>;
   createdby: ApiLink<User>;
 }
+
+/**
+ * Alias for {@link Record}, for use where TypeScript's built-in
+ * `Record<K, V>` utility type would otherwise shadow it.
+ *
+ * @example
+ * ```ts
+ * import type { AprimoRecord } from "aprimo-js/model";
+ *
+ * const expander = Expander.create()
+ *   .for<AprimoRecord>("Record").expand("masterfile", "fields");
+ * ```
+ */
+export type AprimoRecord = Record;

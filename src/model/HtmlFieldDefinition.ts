@@ -3,7 +3,7 @@ import { BaseFieldDefinition } from "./BaseFieldDefinition";
 /**
  * Representation of the definition of an HtmlField. The value is valid HTML content.
  *
- * Spec schema: `Htmlfielddefinition`. Discriminator value: `dataType = "html"`.
+ * Discriminator value: `dataType = "html"`.
  */
 export interface HtmlFieldDefinition extends BaseFieldDefinition {
   /** The maximum length for the field. Format: int32. */

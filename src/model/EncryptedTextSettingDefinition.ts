@@ -3,10 +3,8 @@ import { UserGroupSettingMode } from "./SettingDefinition";
 import { User } from "./User";
 
 /**
- * Representation of a TextSettingDefinition resource (per spec description; the
- * dedicated EncryptedText variant). The EncryptedText variant of
- * {@link SettingDefinition}; `dataType` is `"encryptedtext"` and values are
- * stored encrypted at rest.
+ * The EncryptedText variant of {@link SettingDefinition}. `dataType` is
+ * `"encryptedtext"` and values are stored encrypted at rest.
  */
 export interface EncryptedTextSettingDefinition {
   /** Shows it the setting allows a system setting. */

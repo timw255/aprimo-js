@@ -1,6 +1,5 @@
 /**
  * Representation of Content Type Changed rule condition.
- * (Spec description text reads "Representation of Object Changed rule condition" — likely a copy-paste in the spec.)
  */
 export interface ContentTypeChangedRuleCondition {
   /**

@@ -4,8 +4,7 @@ import { OrderTargetCollection } from "./OrderTargetCollection";
 import { User } from "./User";
 
 /**
- * Representation of a brand template preprocessing order. (Spec description
- * reads "public cdn order" — likely a copy-paste artefact in the spec.)
+ * Representation of a brand template preprocessing order.
  */
 export interface BrandTemplatePreprocessingOrder {
   /** Gets the creation datetime in UTC time. Format: date-time. */
