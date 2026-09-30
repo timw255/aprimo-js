@@ -12,7 +12,7 @@ import { Order } from "../../model/Order";
 import { PagedCollection } from "../../model/PagedCollection";
 import { QueryParams } from "../../model/QueryParams";
 import { buildHeaders } from "../../utils";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 
 export type CreateOrderTarget = CreateFrom<OrderTarget>;
 
@@ -65,7 +65,7 @@ export const orders = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<Order>>> => {
     const headers = buildHeaders(params, expander);
 

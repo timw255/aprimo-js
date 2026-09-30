@@ -1,11 +1,17 @@
 import { QueryParams } from "../../model/QueryParams";
 import { buildHeaders } from "../../utils";
 import { Collection } from "../../model/Collection";
+import { CollectionCommentsStatus } from "../../model/CollectionCommentsStatus";
+import { CollectionContentPermission } from "../../model/CollectionContentPermission";
+import { CollectionGroupPermission } from "../../model/CollectionGroupPermission";
+import { CollectionPermissions } from "../../model/CollectionPermissions";
+import { CollectionUserPermission } from "../../model/CollectionUserPermission";
+import { Comment } from "../../model/Comment";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
 import { RecordCollection } from "../../model/RecordCollection";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { SetActions } from "../../model";
 
 export interface CreateStaticCollectionRequest {
@@ -49,6 +55,70 @@ export interface UpdateStaticCollectionRecordsRequest {
 }
 
 /**
+ * Add/remove envelope for collection permission entries. `remove` takes only
+ * the identifier — the API does not need the permission level to drop an entry.
+ *
+ * Note this is an object, not an array: passing a bare array for
+ * `permissions` / `groupsPermissions` fails with
+ * "Unable to cast object of type 'JArray' to type 'JObject'".
+ */
+export interface CollectionPermissionActions<T, K> {
+  /** Entries to assign or overwrite. */
+  addOrUpdate?: T[];
+  /** Identifiers whose entry should be removed. */
+  remove?: K[];
+}
+
+/**
+ * Payload for `updatePermissions`. Every property is optional — include only
+ * the facet you want to change.
+ */
+export interface UpdateCollectionPermissionsRequest {
+  /** Per-user permission entries. */
+  permissions?: CollectionPermissionActions<
+    CollectionUserPermission,
+    { userId: string }
+  >;
+  /** Per-user-group permission entries. */
+  groupsPermissions?: CollectionPermissionActions<
+    CollectionGroupPermission,
+    { groupId: string }
+  >;
+  /** Public access level. `Modify` is not supported for public access. */
+  publicPermission?: "None" | "Read";
+  /** Content sharing settings. */
+  contentPermission?: CollectionContentPermission;
+}
+
+/** Payload for `createComment`. */
+export interface CreateCollectionCommentRequest {
+  message: string;
+}
+
+/**
+ * Payload for `updateComment`.
+ *
+ * Note the field is `content`, not `message` — the API reads the new text from
+ * `content` on edit even though it returns it as `message` on read. Sending
+ * `message` fails with "An invalid value was specified for Message."
+ */
+export interface UpdateCollectionCommentRequest {
+  content: string;
+}
+
+/** Payload for `markCommentsAsRead`. */
+export interface MarkCollectionCommentsReadRequest {
+  /** Id of the most recently read comment. */
+  id: string;
+  /** Timestamp to record as the read watermark, as an ISO-8601 UTC string. */
+  lastReadCommentDate: string;
+}
+
+export interface CreateCollectionCommentResponse {
+  id: string;
+}
+
+/**
  * Payload for updating a collection. Every property is optional — include only
  * what you want to change. `searchExpression` applies to dynamic collections.
  */
@@ -74,7 +144,7 @@ export const collections = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<Collection>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -92,7 +162,7 @@ export const collections = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<Collection>> => {
     const headers = buildHeaders(undefined, expander);
     return client.get(`/api/core/collection/${id}`, headers);
@@ -115,7 +185,7 @@ export const collections = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<ApiResult<PagedCollection<Collection>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;
@@ -223,7 +293,7 @@ export const collections = (client: HttpClient) => ({
    */
   getRecords: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<RecordCollection>> => {
     const headers = buildHeaders(undefined, expander);
 
@@ -257,5 +327,171 @@ export const collections = (client: HttpClient) => ({
     request: UpdateStaticCollectionRecordsRequest,
   ): Promise<ApiResult<void>> => {
     return client.put(`/api/core/collection/${id}/records`, request);
+  },
+
+  /**
+   * Read the permissions on a collection — per-user and per-group entries,
+   * public access level, content sharing settings, and what the current user
+   * may do (`canRead` / `canModify`).
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.collections.getPermissions(collectionId);
+   * console.log(res.data?.publicPermission, res.data?.groupsPermissions);
+   * ```
+   */
+  getPermissions: async (
+    id: string,
+  ): Promise<ApiResult<CollectionPermissions>> => {
+    return client.get(`/api/core/collection/${id}/permissions`);
+  },
+
+  /**
+   * Update the permissions on a collection. Returns 204 with no body.
+   *
+   * @remarks
+   * Writes are eventually consistent — a read issued immediately after this
+   * call can return the previous state; allow a few seconds or poll.
+   *
+   * @example
+   * ```ts
+   * await aprimo.collections.updatePermissions(collectionId, {
+   *   groupsPermissions: { addOrUpdate: [{ groupId, permission: "Read" }] },
+   *   publicPermission: "None",
+   * });
+   * ```
+   *
+   * @example Remove a group's entry:
+   * ```ts
+   * await aprimo.collections.updatePermissions(collectionId, {
+   *   groupsPermissions: { remove: [{ groupId }] },
+   * });
+   * ```
+   */
+  updatePermissions: async (
+    id: string,
+    request: UpdateCollectionPermissionsRequest,
+  ): Promise<ApiResult<void>> => {
+    return client.put(`/api/core/collection/${id}/permissions`, request);
+  },
+
+  /**
+   * List the comments on a collection.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.collections.getComments(collectionId);
+   * ```
+   */
+  getComments: async (
+    id: string,
+    params?: QueryParams,
+    expander?: HeaderSource | HeaderSource[],
+  ): Promise<ApiResult<PagedCollection<Comment>>> => {
+    const headers = buildHeaders(params, expander);
+
+    return client.get(`/api/core/collection/${id}/comments`, headers);
+  },
+
+  /**
+   * Fetch a single comment on a collection.
+   */
+  getCommentById: async (
+    id: string,
+    commentId: string,
+    expander?: HeaderSource | HeaderSource[],
+  ): Promise<ApiResult<Comment>> => {
+    const headers = buildHeaders(undefined, expander);
+
+    return client.get(
+      `/api/core/collection/${id}/comment/${commentId}`,
+      headers,
+    );
+  },
+
+  /**
+   * Post a comment on a collection.
+   *
+   * @returns `ApiResult` whose `data.id` is the new comment's id.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.collections.createComment(collectionId, {
+   *   message: "Approved for launch",
+   * });
+   * ```
+   */
+  createComment: async (
+    id: string,
+    request: CreateCollectionCommentRequest,
+  ): Promise<ApiResult<CreateCollectionCommentResponse>> => {
+    return client.post(`/api/core/collection/${id}/comments`, request);
+  },
+
+  /**
+   * Edit the text of a comment. Returns 204 with no body.
+   *
+   * @example
+   * ```ts
+   * await aprimo.collections.updateComment(collectionId, commentId, {
+   *   content: "Approved for launch (revised)",
+   * });
+   * ```
+   */
+  updateComment: async (
+    id: string,
+    commentId: string,
+    request: UpdateCollectionCommentRequest,
+  ): Promise<ApiResult<void>> => {
+    return client.put(
+      `/api/core/collection/${id}/comment/${commentId}`,
+      request,
+    );
+  },
+
+  /**
+   * Delete a comment from a collection.
+   */
+  deleteComment: async (
+    id: string,
+    commentId: string,
+  ): Promise<ApiResult<void>> => {
+    return client.delete(`/api/core/collection/${id}/comment/${commentId}`);
+  },
+
+  /**
+   * Read the comment read-status for a collection — how many comments the
+   * current user has not read.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.collections.getCommentsStatus(collectionId);
+   * if (res.data?.unreadComments) { /* ... *\/ }
+   * ```
+   */
+  getCommentsStatus: async (
+    id: string,
+  ): Promise<ApiResult<CollectionCommentsStatus>> => {
+    return client.get(`/api/core/collection/${id}/comments/status`);
+  },
+
+  /**
+   * Move the current user's read watermark on a collection's comments.
+   *
+   * @returns The refreshed unread count.
+   *
+   * @example
+   * ```ts
+   * await aprimo.collections.markCommentsAsRead(collectionId, {
+   *   id: latestCommentId,
+   *   lastReadCommentDate: new Date().toISOString(),
+   * });
+   * ```
+   */
+  markCommentsAsRead: async (
+    id: string,
+    request: MarkCollectionCommentsReadRequest,
+  ): Promise<ApiResult<CollectionCommentsStatus>> => {
+    return client.put(`/api/core/collection/${id}/comments/status`, request);
   },
 });

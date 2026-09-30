@@ -6,7 +6,56 @@ import {
 } from "../../../src/utils";
 import { describe, it, expect } from "vitest";
 import { Expander } from "../../../src/expander";
+import { Select } from "../../../src/select";
 import { Record } from "../../../src/model";
+
+describe("buildHeaders with Select", () => {
+  it("emits opt-in scalar props PascalCased", () => {
+    const select = Select.create()
+      .for<Record>("Record")
+      .props("tag", "textContent");
+
+    expect(buildHeaders(undefined, select)).toEqual({
+      "select-Record": "Tag,TextContent",
+    });
+  });
+
+  it("merges an Expander and a Select into one header", () => {
+    const expander = Expander.create().for<Record>("Record").expand("fields");
+    const select = Select.create().for<Record>("Record").props("tag");
+
+    expect(buildHeaders(undefined, [expander, select])).toEqual({
+      "select-Record": "fields,Tag",
+    });
+  });
+
+  it("merges headers whose names differ only by case", () => {
+    // Expander emits `select-Record`; a hand-rolled source may use lowercase.
+    // Two object keys would silently drop one on the wire.
+    const upper = { getHeaders: () => ({ "select-Record": "fields" }) };
+    const lower = { getHeaders: () => ({ "select-record": "Tag" }) };
+
+    const headers = buildHeaders(undefined, [upper, lower]);
+
+    expect(Object.keys(headers)).toEqual(["select-Record"]);
+    expect(headers["select-Record"]).toBe("fields,Tag");
+  });
+
+  it("does not duplicate a value present in both sources", () => {
+    const a = { getHeaders: () => ({ "select-Record": "fields,Tag" }) };
+    const b = { getHeaders: () => ({ "select-Record": "Tag" }) };
+
+    expect(buildHeaders(undefined, [a, b])["select-Record"]).toBe("fields,Tag");
+  });
+
+  it("accepts a single source, an array, or nothing", () => {
+    const select = Select.create().for<Record>("Record").props("tag");
+
+    expect(buildHeaders(undefined, select)["select-Record"]).toBe("Tag");
+    expect(buildHeaders(undefined, [select])["select-Record"]).toBe("Tag");
+    expect(buildHeaders({ page: 2 })).toEqual({ page: "2" });
+  });
+});
 
 describe("buildHeaders", () => {
   it("merges queryParams and expander headers", () => {

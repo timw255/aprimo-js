@@ -1,4 +1,4 @@
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { DownloadLink } from "../../model/DownloadLink";
@@ -17,7 +17,7 @@ export const downloadLinks = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<DownloadLink>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -34,7 +34,7 @@ export const downloadLinks = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<DownloadLink>> => {
     const headers = buildHeaders(undefined, expander);
 

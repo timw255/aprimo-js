@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { expectOk, logShape } from "../../utils";
+import { eventually, expectOk, logShape } from "../../utils";
 import { createClient } from "../../../src";
 
 const aprimo = createClient({
@@ -10,6 +10,7 @@ const aprimo = createClient({
 });
 
 const recordId = process.env.TEST_RECORD_ID!;
+const userGroupId = process.env.APRIMO_DAM_TEST_USER_GROUP_ID!;
 
 describe("collections integration", () => {
   let staticId: string;
@@ -107,6 +108,115 @@ describe("collections integration", () => {
     const after = await aprimo.collections.getById(staticId);
     expectOk(after);
     expect(after.data?.name).toBe(name);
+  });
+
+  it("reads the collection permissions", async () => {
+    const res = await aprimo.collections.getPermissions(staticId);
+    expectOk(res);
+    logShape("collections.getPermissions", res.data);
+    expect(res.data?.publicPermission).toBeDefined();
+    expect(Array.isArray(res.data?.groupsPermissions)).toBe(true);
+  });
+
+  it("grants a user group permission on the collection", async () => {
+    const res = await aprimo.collections.updatePermissions(staticId, {
+      groupsPermissions: { addOrUpdate: [{ groupId: userGroupId, permission: "Read" }] },
+    });
+    expectOk(res);
+
+    const back = await eventually(
+      () => aprimo.collections.getPermissions(staticId),
+      (d) => !!d?.groupsPermissions?.some((g) => g.groupId === userGroupId),
+    );
+    expectOk(back);
+    expect(
+      back.data?.groupsPermissions?.find((g) => g.groupId === userGroupId)
+        ?.permission,
+    ).toBe("Read");
+  });
+
+  it("removes the user group permission by groupId alone", async () => {
+    const res = await aprimo.collections.updatePermissions(staticId, {
+      groupsPermissions: { remove: [{ groupId: userGroupId }] },
+    });
+    expectOk(res);
+
+    const back = await eventually(
+      () => aprimo.collections.getPermissions(staticId),
+      (d) => !d?.groupsPermissions?.some((g) => g.groupId === userGroupId),
+    );
+    expectOk(back);
+    expect(
+      back.data?.groupsPermissions?.some((g) => g.groupId === userGroupId),
+    ).toBe(false);
+  });
+
+  it("sets the public permission on the collection", async () => {
+    const res = await aprimo.collections.updatePermissions(staticId, {
+      publicPermission: "Read",
+    });
+    expectOk(res);
+
+    const back = await eventually(
+      () => aprimo.collections.getPermissions(staticId),
+      (d) => d?.publicPermission === "Read",
+    );
+    expectOk(back);
+    expect(back.data?.publicPermission).toBe("Read");
+  });
+
+  it("posts, reads and deletes a comment on the collection", async () => {
+    const created = await aprimo.collections.createComment(staticId, {
+      message: "integration comment",
+    });
+    expectOk(created);
+    logShape("collections.createComment", created.data);
+    const commentId = created.data!.id;
+    expect(commentId).toBeDefined();
+
+    const one = await aprimo.collections.getCommentById(staticId, commentId);
+    expectOk(one);
+    logShape("collections.getCommentById", one.data);
+    expect(one.data?.message).toBe("integration comment");
+
+    const edited = await aprimo.collections.updateComment(staticId, commentId, {
+      content: "integration comment (edited)",
+    });
+    expectOk(edited);
+    const afterEdit = await eventually(
+      () => aprimo.collections.getCommentById(staticId, commentId),
+      (d) => d?.message === "integration comment (edited)",
+    );
+    expect(afterEdit.data?.message).toBe("integration comment (edited)");
+
+    const marked = await aprimo.collections.markCommentsAsRead(staticId, {
+      id: commentId,
+      lastReadCommentDate: new Date().toISOString(),
+    });
+    expectOk(marked);
+    logShape("collections.markCommentsAsRead", marked.data);
+    expect(typeof marked.data?.unreadComments).toBe("number");
+
+    const list = await aprimo.collections.getComments(staticId);
+    expectOk(list);
+    logShape("collections.getComments", list.data);
+    expect(list.data?.items?.some((c) => c.id === commentId)).toBe(true);
+
+    const removed = await aprimo.collections.deleteComment(staticId, commentId);
+    expectOk(removed);
+
+    const after = await eventually(
+      () => aprimo.collections.getComments(staticId),
+      (d) => !d?.items?.some((c) => c.id === commentId),
+    );
+    expect(after.data?.items?.some((c) => c.id === commentId)).toBe(false);
+  });
+
+  it("reads the comment status for the collection", async () => {
+    const res = await aprimo.collections.getCommentsStatus(staticId);
+    expectOk(res);
+    logShape("collections.getCommentsStatus", res.data);
+    expect(typeof res.data?.unreadComments).toBe("number");
   });
 
   it("deletes the static collection", async () => {

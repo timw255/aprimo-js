@@ -1,4 +1,4 @@
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { CreateFrom } from "../../model/CreateFrom";
@@ -27,7 +27,7 @@ export const translations = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<Translation>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -40,7 +40,7 @@ export const translations = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<Translation>> => {
     const headers = buildHeaders(undefined, expander);
 
@@ -64,7 +64,7 @@ export const translations = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<ApiResult<PagedCollection<Translation>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;

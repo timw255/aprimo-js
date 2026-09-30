@@ -1,4 +1,4 @@
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
@@ -114,7 +114,7 @@ export const settingDefinitions = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<SettingDefinition>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -138,7 +138,7 @@ export const settingDefinitions = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<
     ApiResult<PagedCollection<SettingDefinition>>,
     void,
@@ -167,7 +167,7 @@ export const settingDefinitions = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<SettingDefinition>> => {
     const headers = buildHeaders(undefined, expander);
 

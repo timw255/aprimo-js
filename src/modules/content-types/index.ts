@@ -7,7 +7,7 @@ import { FileConfiguration } from "../../model/FileConfiguration";
 import { Label } from "../../model/Label";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { buildHeaders } from "../../utils";
 
 export interface EditContentTypeRequest {
@@ -47,7 +47,7 @@ export const contentTypes = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<ContentType>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -71,7 +71,7 @@ export const contentTypes = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<ApiResult<PagedCollection<ContentType>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;
@@ -101,11 +101,31 @@ export const contentTypes = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<ContentType>> => {
     const headers = buildHeaders(undefined, expander);
 
     return client.get(`/api/core/contenttype/${id}`, headers);
+  },
+
+  /**
+   * Fetch a single content type by its (non-localized) name.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.contentTypes.getByName("Asset");
+   * ```
+   */
+  getByName: async (
+    name: string,
+    expander?: HeaderSource | HeaderSource[],
+  ): Promise<ApiResult<ContentType>> => {
+    const headers = buildHeaders(undefined, expander);
+
+    return client.get(
+      `/api/core/contenttype?name=${encodeURIComponent(name)}`,
+      headers,
+    );
   },
 
   /**

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, it, expect } from "vitest";
 import { eventually, expectOk, logShape } from "../../utils";
-import { createClient, Expander } from "../../../src";
+import { createClient, Expander, Select } from "../../../src";
 import type { Classification } from "../../../src/model/Classification";
 
 const aprimo = createClient({
@@ -14,12 +14,13 @@ const userGroupId = process.env.APRIMO_DAM_TEST_USER_GROUP_ID!;
 
 describe("classifications integration", () => {
   let classificationId: string;
+  const classificationName = `IntegrationClassification_${Date.now()}`;
 
   it("creates a root classification", async () => {
     const res = await aprimo.classifications.create(
       {
         identifier: `int_test_${Date.now()}`,
-        name: `IntegrationClassification_${Date.now()}`,
+        name: classificationName,
         isRoot: true,
         sortIndex: 1,
         sortOrder: "Label",
@@ -50,6 +51,53 @@ describe("classifications integration", () => {
       if (count >= 4) break;
     }
     expect(count).toBeGreaterThan(0);
+  });
+
+  it("selects the opt-in namePath property", async () => {
+    const plain = await aprimo.classifications.getById(classificationId);
+    expectOk(plain);
+    expect(plain.data?.namePath ?? null).toBeNull();
+
+    const select = Select.create()
+      .for<Classification>("Classification")
+      .props("namePath");
+
+    const res = await aprimo.classifications.getById(classificationId, select);
+    expectOk(res);
+    logShape("classifications.getById:namePath", res.data);
+    expect(res.data?.namePath).toBe(`/${classificationName}`);
+  });
+
+  it("combines an Expander and a Select in one request", async () => {
+    const expander = Expander.create()
+      .for<Classification>("Classification")
+      .expand("fields");
+    const select = Select.create()
+      .for<Classification>("Classification")
+      .props("namePath");
+
+    const res = await aprimo.classifications.getById(classificationId, [
+      expander,
+      select,
+    ]);
+    expectOk(res);
+    expect(res.data?.namePath).toBe(`/${classificationName}`);
+    expect(res.data?._embedded?.fields).toBeDefined();
+  });
+
+  it("gets a classification by name path", async () => {
+    const withPath = await aprimo.classifications.getById(
+      classificationId,
+      Select.create().for<Classification>("Classification").props("namePath"),
+    );
+    expectOk(withPath);
+
+    const res = await aprimo.classifications.getByNamePath(
+      withPath.data!.namePath!,
+    );
+    expectOk(res);
+    logShape("classifications.getByNamePath", res.data);
+    expect(res.data?.id).toBe(classificationId);
   });
 
   it("gets the classification by id", async () => {

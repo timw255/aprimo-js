@@ -16,7 +16,9 @@ Aprimo JS provides a modular interface to most core Aprimo DAM APIs.
 
 The following modules are available:
 
+- `additionalFiles`
 - `auditTrail`
+- `checks`
 - `classifications`
 - `collections`
 - `contentTypes`
@@ -25,13 +27,17 @@ The following modules are available:
 - `fieldGroups`
 - `fileTypes`
 - `files`
+- `fileVersions`
 - `languages`
 - `maintenanceJobs`
 - `orders`
 - `permissions`
+- `productivity`
 - `publicLinks`
+- `publicUris`
 - `recordLocks`
 - `records`
+- `renditions`
 - `rules`
 - `search`
 - `settingCategories`
@@ -266,6 +272,33 @@ This is intentional:
 
 - `Record`, `File`, and `FileVersion` are **TypeScript types** used for **type checking** and auto-complete.
 - `"Record"`, `"File"`, and `"FileVersion"` are **string keys** required by the API to construct proper headers like `select-Record: masterfile,fields`, `select-File: fileversions`, `select-FileVersion: renditions`
+
+## Selecting Opt-In Properties
+
+Some properties are omitted from responses unless requested — `namePath` on a classification, `tag` and `textContent` on a record. Use `Select` to ask for them.
+
+```ts
+import { Select } from 'aprimo-js';
+import type { Classification } from 'aprimo-js/model';
+
+const select = Select.create()
+  .for<Classification>("Classification").props("namePath");
+
+const result = await aprimo.classifications.getById("your-classification-id", select);
+// result.data.namePath is populated instead of null
+```
+
+`props()` takes model property names and converts them to the names the API expects.
+
+`Select` and `Expander` write the same `select-<TypeName>` header, so pass both as an array to combine them:
+
+```ts
+const expander = Expander.create()
+  .for<Classification>("Classification").expand("fields");
+
+await aprimo.classifications.getById(id, [expander, select]);
+// sends `select-Classification: fields,NamePath`
+```
 
 ## Advanced Upload Options
 

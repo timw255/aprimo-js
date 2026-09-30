@@ -1,15 +1,54 @@
-import { Expander } from "./expander";
 import { QueryParams } from "./model/QueryParams";
+import { HeaderSource } from "./select";
 import { SetActions } from "./model/SetActions";
 
 export function buildHeaders(
   params?: QueryParams,
-  expander?: Expander,
+  select?: HeaderSource | HeaderSource[],
 ): Record<string, string> {
-  return {
-    ...queryParamsToHeaders(params),
-    ...(expander?.getHeaders?.() ?? {}),
-  };
+  const sources = select === undefined ? [] : Array.isArray(select) ? select : [select];
+
+  return mergeSelectHeaders(
+    queryParamsToHeaders(params),
+    ...sources.map((s) => s.getHeaders?.() ?? {}),
+  );
+}
+
+/**
+ * Merge header maps, comma-joining values whose keys differ only by case.
+ *
+ * `Expander` and `Select` both emit `select-<TypeName>` headers, and HTTP
+ * header names are case-insensitive while JavaScript object keys are not.
+ * Spreading `{ "select-Classification": "fields" }` over
+ * `{ "select-classification": "NamePath" }` yields two keys, only one of which
+ * reaches the server — silently dropping the other's request.
+ */
+function mergeSelectHeaders(
+  ...maps: Record<string, string>[]
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  const canonical = new Map<string, string>();
+
+  for (const map of maps) {
+    for (const [key, value] of Object.entries(map)) {
+      const lower = key.toLowerCase();
+      const existing = canonical.get(lower);
+
+      if (existing === undefined) {
+        canonical.set(lower, key);
+        result[key] = value;
+        continue;
+      }
+
+      const merged = new Set([
+        ...result[existing]!.split(",").filter(Boolean),
+        ...value.split(",").filter(Boolean),
+      ]);
+      result[existing] = [...merged].join(",");
+    }
+  }
+
+  return result;
 }
 
 export function queryParamsToHeaders(

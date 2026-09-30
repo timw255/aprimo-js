@@ -1,4 +1,4 @@
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { CreateFrom } from "../../model/CreateFrom";
@@ -42,7 +42,7 @@ export const fileTypes = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<FileType>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -55,7 +55,7 @@ export const fileTypes = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<FileType>> => {
     const headers = buildHeaders(undefined, expander);
 
@@ -79,7 +79,7 @@ export const fileTypes = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<ApiResult<PagedCollection<FileType>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;

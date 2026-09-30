@@ -2,7 +2,7 @@ import { HttpClient } from "../../http";
 import { QueryParams } from "../../model/QueryParams";
 import { PagedCollection } from "../../model/PagedCollection";
 import { ApiResult } from "../../client";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { buildHeaders } from "../../utils";
 import { Language } from "../../model/Language";
 import { CreateFrom } from "../../model/CreateFrom";
@@ -26,7 +26,7 @@ export const languages = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<Language>>> => {
     const headers = buildHeaders(params, expander);
     return client.get("/api/core/languages", headers);
@@ -49,7 +49,7 @@ export const languages = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<ApiResult<PagedCollection<Language>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;
@@ -74,7 +74,7 @@ export const languages = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<Language>> => {
     const headers = buildHeaders(undefined, expander);
     return client.get(`/api/core/language/${id}`, headers);

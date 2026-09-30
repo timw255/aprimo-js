@@ -4,7 +4,7 @@ import { SetActions } from "../../model/SetActions";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { buildHeaders } from "../../utils";
 
 export interface CreateFieldGroupRequest {
@@ -32,7 +32,7 @@ export const fieldGroups = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<FieldGroup>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -56,7 +56,7 @@ export const fieldGroups = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<ApiResult<PagedCollection<FieldGroup>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;
@@ -81,7 +81,7 @@ export const fieldGroups = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<FieldGroup>> => {
     const headers = buildHeaders(undefined, expander);
 

@@ -18,6 +18,17 @@ describe("contentTypes integration", () => {
     showExtension: true,
   };
 
+  it("gets a content type by name", async () => {
+    const list = await aprimo.contentTypes.get({ pageSize: 1 });
+    expectOk(list);
+    const name = list.data!.items![0]!.name;
+
+    const res = await aprimo.contentTypes.getByName(name);
+    expectOk(res);
+    logShape("contentTypes.getByName", res.data);
+    expect(res.data?.name).toBe(name);
+  });
+
   it("creates a content type", async () => {
     const res = await aprimo.contentTypes.create({
       name: `Integration Type ${Date.now()}`,

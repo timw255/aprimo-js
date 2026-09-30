@@ -3,7 +3,7 @@ import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
 import { QueryParams } from "../../model/QueryParams";
 import { Record } from "../../model/Record";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { SetActions } from "../../model/SetActions";
 import { Field } from "../../model/Field";
 import { buildHeaders } from "../../utils";
@@ -146,7 +146,7 @@ export const records = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): Promise<ApiResult<PagedCollection<Record>>> => {
     const headers = buildHeaders(params, expander);
@@ -181,7 +181,7 @@ export const records = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): AsyncGenerator<ApiResult<PagedCollection<Record>>, void, unknown> {
     let currentPage = params.page ?? 1;
@@ -219,7 +219,7 @@ export const records = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): Promise<ApiResult<Record>> => {
     const headers = buildHeaders(undefined, expander);

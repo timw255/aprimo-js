@@ -117,6 +117,8 @@ export function createClient(options: CreateClientOptions): Aprimo {
 export { Aprimo };
 export { computeSetActions } from "./utils";
 export { Expander } from "./expander";
+export { Select } from "./select";
+export type { HeaderSource } from "./select";
 
 // Error classes — see `src/errors.ts` for the full hierarchy. Use `instanceof`
 // to narrow `ApiResult.error` (or thrown values from `createClient`,

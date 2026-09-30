@@ -54,6 +54,7 @@ export * from "./ClassificationUserPermissions";
 export * from "./ClassifiedInRuleCondition";
 export * from "./ClassifyRecordRuleAction";
 export * from "./Collection";
+export * from "./CollectionCommentsStatus";
 export * from "./CollectionContentPermission";
 export * from "./CollectionGroupPermission";
 export * from "./CollectionPermissions";

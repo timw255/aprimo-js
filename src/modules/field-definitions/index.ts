@@ -25,7 +25,7 @@ import { ApiResult } from "../../client";
 import { CreateFrom } from "../../model/CreateFrom";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { buildHeaders } from "../../utils";
 
 export type CreateSingleLineTextFieldDefinitionRequest = Omit<
@@ -314,7 +314,7 @@ export const fieldDefinitions = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): Promise<ApiResult<PagedCollection<FieldDefinition>>> => {
     const headers = buildHeaders(params, expander);
@@ -337,7 +337,7 @@ export const fieldDefinitions = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): Promise<ApiResult<FieldDefinition>> => {
     const headers = buildHeaders(undefined, expander);
@@ -366,7 +366,7 @@ export const fieldDefinitions = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): AsyncGenerator<
     ApiResult<PagedCollection<FieldDefinition>>,

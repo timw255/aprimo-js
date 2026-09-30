@@ -8,7 +8,7 @@ import { ApiResult } from "../../client";
 import { CreateFrom } from "../../model/CreateFrom";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 
 export type CreateRuleRequest = Omit<CreateFrom<Rule>, "version"> & {
   conditions?: SetActions<RuleCondition>;
@@ -33,7 +33,7 @@ export const rules = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<Rule>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -57,7 +57,7 @@ export const rules = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<ApiResult<PagedCollection<Rule>>, void, unknown> {
     let currentPage = params.page ?? 1;
     const pageSize = params.pageSize ?? 100;
@@ -82,7 +82,7 @@ export const rules = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<Rule>> => {
     const headers = buildHeaders(undefined, expander);
 

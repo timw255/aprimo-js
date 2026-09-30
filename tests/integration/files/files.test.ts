@@ -1,4 +1,4 @@
-import { describe, it } from "vitest";
+import { describe, it, expect } from "vitest";
 import { createClient } from "../../../src";
 import { expectOk, logShape } from "../../utils";
 import { Expander } from "../../../src/expander";
@@ -39,5 +39,20 @@ describe("files integration", () => {
     const res = await aprimo.files.checkIn(fileId);
     expectOk(res);
     logShape("files.checkIn", res.data);
+  });
+
+  it("lists the versions of a file", async () => {
+    const res = await aprimo.files.getVersions(fileId);
+    expectOk(res);
+    logShape("files.getVersions", res.data);
+    expect(res.data?.items?.length).toBeGreaterThan(0);
+  });
+
+  it("gets the latest version of a file", async () => {
+    const res = await aprimo.files.getLatestVersion(fileId);
+    expectOk(res);
+    logShape("files.getLatestVersion", res.data);
+    expect(res.data?.id).toBeDefined();
+    expect(res.data?.isLatest).toBe(true);
   });
 });

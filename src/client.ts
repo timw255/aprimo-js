@@ -24,6 +24,8 @@ import { translations } from "./modules/translations";
 import { uploader } from "./modules/uploader";
 import { settings } from "./modules/settings";
 import { publicLinks } from "./modules/public-links";
+import { publicUris } from "./modules/public-uris";
+import { renditions } from "./modules/renditions";
 import { recordLocks } from "./modules/record-locks";
 import { files } from "./modules/files";
 import { languages } from "./modules/languages";
@@ -68,11 +70,11 @@ export type ApiResult<T> = {
  * the Aprimo REST API. Construct via `createClient(...)` rather than `new`.
  *
  * Grouping (purely visual — all modules sit on the same instance):
- * - **Records & files**: records, files, fileVersions, fileTypes, additionalFiles, recordLocks, uploader
+ * - **Records & files**: records, files, fileVersions, fileTypes, additionalFiles, renditions, recordLocks, uploader
  * - **Taxonomy & metadata**: classifications, contentTypes, fieldDefinitions, fieldGroups, languages, translations
  * - **Discovery**: search, collections
  * - **Access & permissions**: permissions, users, userGroups
- * - **Sharing**: downloadLinks, publicLinks
+ * - **Sharing**: downloadLinks, publicLinks, publicUris
  * - **Operations**: auditTrail, checks, maintenanceJobs, orders, rules, settings, settingCategories, settingDefinitions
  * - **Productivity (PM)**: productivity (sub-module tree for the PM API)
  */
@@ -96,6 +98,8 @@ export class Aprimo {
   public fileTypes: ReturnType<typeof fileTypes>;
   /** Additional (non-master) files attached to a file version. */
   public additionalFiles: ReturnType<typeof additionalFiles>;
+  /** Renditions generated from a file version. */
+  public renditions: ReturnType<typeof renditions>;
   /** Record-level locks separate from file check-out. */
   public recordLocks: ReturnType<typeof recordLocks>;
   /** Upload files to Aprimo and receive an upload token to attach to records. */
@@ -138,6 +142,8 @@ export class Aprimo {
   public downloadLinks: ReturnType<typeof downloadLinks>;
   /** Manage publicly-shareable links to records or renditions. */
   public publicLinks: ReturnType<typeof publicLinks>;
+  /** Public URIs published for a file version. */
+  public publicUris: ReturnType<typeof publicUris>;
 
   // --- Operations ---
 
@@ -222,6 +228,8 @@ export class Aprimo {
     this.orders = orders(this.damHttp);
     this.permissions = permissions(this.damHttp);
     this.publicLinks = publicLinks(this.damHttp);
+    this.publicUris = publicUris(this.damHttp);
+    this.renditions = renditions(this.damHttp);
     this.recordLocks = recordLocks(this.damHttp);
     this.records = records(this.damHttp);
     this.rules = rules(this.damHttp);

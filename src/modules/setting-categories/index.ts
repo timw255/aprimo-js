@@ -1,4 +1,4 @@
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { CreateFrom } from "../../model/CreateFrom";
@@ -23,7 +23,7 @@ export const settingCategories = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<PagedCollection<SettingCategory>>> => {
     const headers = buildHeaders(params, expander);
 
@@ -47,7 +47,7 @@ export const settingCategories = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): AsyncGenerator<
     ApiResult<PagedCollection<SettingCategory>>,
     void,
@@ -76,7 +76,7 @@ export const settingCategories = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<SettingCategory>> => {
     const headers = buildHeaders(undefined, expander);
 

@@ -1,5 +1,5 @@
 import { ApiResult } from "../../client";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 import { HttpClient } from "../../http";
 import { SearchIndex } from "../../model/SearchIndex";
 import { SearchResponse } from "../../model/SearchResponse";
@@ -87,7 +87,7 @@ export const search = (client: HttpClient) => ({
    */
   records: async (
     request: RecordSearchRequest,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<SearchResponse>> => {
     const headers = buildHeaders(undefined, expander);
     const { page, pageSize, ...body } = request;
@@ -115,7 +115,7 @@ export const search = (client: HttpClient) => ({
    */
   classifications: async (
     request: ClassificationSearchRequest,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
   ): Promise<ApiResult<SearchResponse>> => {
     const headers = buildHeaders(undefined, expander);
     const { page, pageSize, ...body } = request;

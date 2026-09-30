@@ -17,7 +17,7 @@ import { ApiResult } from "../../client";
 import { CreateFrom } from "../../model/CreateFrom";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
-import { Expander } from "../../expander";
+import { HeaderSource } from "../../select";
 
 export interface ClassificationSearchRequest {
   expression: string;
@@ -156,7 +156,7 @@ export const classifications = (client: HttpClient) => ({
    */
   get: async (
     params?: QueryParams,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): Promise<ApiResult<PagedCollection<Classification>>> => {
     const headers = buildHeaders(params, expander);
@@ -179,7 +179,7 @@ export const classifications = (client: HttpClient) => ({
    */
   getById: async (
     id: string,
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): Promise<ApiResult<Classification>> => {
     const headers = buildHeaders(undefined, expander);
@@ -189,6 +189,36 @@ export const classifications = (client: HttpClient) => ({
     }
 
     return client.get(`/api/core/classification/${id}`, headers);
+  },
+
+  /**
+   * Fetch a single classification by its slash-separated internal name path,
+   * e.g. `"/ReviewStatus/approved"`.
+   *
+   * `namePath` is opt-in on list responses — request it with a
+   * `select-classification: NamePath` header (or an `Expander`) if you need to
+   * discover paths first.
+   *
+   * @example
+   * ```ts
+   * const res = await aprimo.classifications.getByNamePath("/ReviewStatus/approved");
+   * ```
+   */
+  getByNamePath: async (
+    namePath: string,
+    expander?: HeaderSource | HeaderSource[],
+    languages?: "*" | string[],
+  ): Promise<ApiResult<Classification>> => {
+    const headers = buildHeaders(undefined, expander);
+
+    if (languages) {
+      headers["languages"] = languages === "*" ? "*" : languages.join(",");
+    }
+
+    return client.get(
+      `/api/core/classification?namePath=${encodeURIComponent(namePath)}`,
+      headers,
+    );
   },
 
   /**
@@ -209,7 +239,7 @@ export const classifications = (client: HttpClient) => ({
    */
   getPaged: async function* (
     params: QueryParams = {},
-    expander?: Expander,
+    expander?: HeaderSource | HeaderSource[],
     languages?: "*" | string[],
   ): AsyncGenerator<ApiResult<PagedCollection<Classification>>, void, unknown> {
     let currentPage = params.page ?? 1;
