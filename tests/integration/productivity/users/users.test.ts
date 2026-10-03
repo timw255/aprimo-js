@@ -42,13 +42,68 @@ describe("productivity users integration", () => {
       applicationUser: true,
       portalUser: true,
       reviewUser: true,
-      isOutOfOffice: false,
-      clientLoggingLevel: 0,
+      company: "IntegrationTest Co",
+      themeId: 1,
+      notificationTypeId: 1,
+      preferredLandingPage: 1,
+      spendFocusedView: 1,
     });
     expectOk(res);
     logShape("users.create", res.data);
     expect(res.data?.userId).toBeDefined();
     userId = res.data!.userId;
+  });
+
+  it("persists the optional profile fields supplied on create", async () => {
+    const res = await aprimo.productivity.users.getById(userId);
+    expectOk(res);
+    expect(res.data?.company).toBe("IntegrationTest Co");
+    expect(res.data?.themeId).toBe(1);
+    expect(res.data?.notificationTypeId).toBe(1);
+    expect(res.data?.preferredLandingPage).toBe(1);
+    expect(res.data?.spendFocusedView).toBe(1);
+  });
+
+  it("rejects a passwordExpires value other than 0 or 1", async () => {
+    const defaults = await getTenantDefaults(aprimo);
+    const stamp = `int_test_pw_${Date.now()}`;
+    const res = await aprimo.productivity.users.create({
+      loginId: stamp,
+      email: `${stamp}@example.com`,
+      lastName: "IntegrationTest",
+      currencyCode: defaults.currencyCode,
+      laborRateCurrencyCode: defaults.currencyCode,
+      languageId: defaults.languageId,
+      localeId: 1,
+      dateFormat: 1,
+      timeFormat: 1,
+      numberFormatId: 1,
+      timezoneId: 1,
+      paperSize: 1,
+      htmlEmail: true,
+      analyzeAllDomains: 0,
+      isPinReset: 0,
+      adHocUser: false,
+      activeFlag: 1,
+      applicationUser: true,
+      portalUser: true,
+      reviewUser: true,
+      passwordExpires: 2 as 0 | 1,
+    });
+    expect(res.ok).toBe(false);
+    if (res.ok) await aprimo.productivity.users.delete(res.data!.userId);
+  });
+
+  it("surfaces the Productivity error message on a failed create", async () => {
+    // PM returns { count, errors: [{ message }] }; the SDK must read it
+    // rather than falling back to axios's generic status text.
+    const res = await aprimo.productivity.users.create({
+      loginId: "x@example.com",
+      email: "x@example.com",
+      lastName: "X",
+    } as never);
+    expect(res.ok).toBe(false);
+    expect(res.error?.message).toMatch(/Required property/i);
   });
 
   it("gets the current user", async () => {

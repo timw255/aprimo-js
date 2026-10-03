@@ -352,6 +352,57 @@ describe("HttpClient", () => {
     expect(Date.now() - start).toBeLessThan(400);
   });
 
+  it("reads the message from a Productivity-shaped error body", async () => {
+    // PM answers with { count, errors: [{ message }] } rather than the DAM's
+    // { exceptionType, exceptionMessage }.
+    const err = new AxiosError("Request failed with status code 400");
+    Object.assign(err, {
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: {
+          count: 1,
+          errors: [{ message: "Required property 'CurrencyCode' not found." }],
+        },
+      },
+    });
+    mockedAxios.request = vi.fn().mockRejectedValue(err);
+
+    const res = await client.get("/pm");
+
+    expect(res.error?.message).toBe("Required property 'CurrencyCode' not found.");
+    expect(res.status).toBe(400);
+  });
+
+  it("joins multiple Productivity validation errors", async () => {
+    const err = new AxiosError("Request failed with status code 400");
+    Object.assign(err, {
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: { count: 2, errors: [{ message: "first" }, { message: "second" }] },
+      },
+    });
+    mockedAxios.request = vi.fn().mockRejectedValue(err);
+
+    expect((await client.get("/pm")).error?.message).toBe("first; second");
+  });
+
+  it("falls back to the axios message when no body message is present", async () => {
+    // `vi.mock("axios")` stubs AxiosError, so set `message` explicitly.
+    const err = new AxiosError("Request failed with status code 500");
+    Object.assign(err, {
+      message: "Request failed with status code 500",
+      isAxiosError: true,
+      response: { status: 500, data: { count: 0, errors: [] } },
+    });
+    mockedAxios.request = vi.fn().mockRejectedValue(err);
+
+    expect((await client.get("/pm")).error?.message).toBe(
+      "Request failed with status code 500",
+    );
+  });
+
   it("rejects a negative maxRetries at construction", () => {
     expect(
       () =>

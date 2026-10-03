@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect } from "vitest";
 import { createClient } from "../../../../src";
 import { expectOk } from "../../../utils";
 import { logShape } from "../_helpers";
@@ -10,10 +10,58 @@ const aprimo = createClient({
   clientSecret: process.env.APRIMO_CLIENT_SECRET!,
 });
 
-const taskId = Number(process.env.APRIMO_PM_TASK_ID);
-const documentId = process.env.APRIMO_PM_TASK_DOCUMENT_ID!;
-const versionId = process.env.APRIMO_PM_TASK_DOCUMENT_VERSION_ID!;
 const attachmentId = Number(process.env.APRIMO_PM_ATTACHMENT_ID);
+
+/**
+ * Fixtures are discovered at run time; the `APRIMO_PM_*` vars are overrides.
+ *
+ * Tenant setup: the integration user needs a PM user role, membership of the
+ * project's activity team, and at least one task assigned to it.
+ */
+let taskId: number;
+let documentId: string;
+let versionId: string;
+
+/** Names the missing fixture when one isn't available. */
+const required = (value: string | number | undefined, what: string) => {
+  expect(
+    value,
+    `no ${what} available — assign one to the integration user, or set the ` +
+      `matching APRIMO_PM_* override`,
+  ).toBeTruthy();
+  return value!;
+};
+
+const firstId = (data: unknown): string | undefined => {
+  const o = (data ?? {}) as Record<string, unknown>;
+  for (const k of Object.keys(o)) {
+    if (k === "_links" || !Array.isArray(o[k])) continue;
+    const first = (o[k] as Record<string, unknown>[])[0];
+    if (!first) continue;
+    const href = typeof first.href === "string" ? first.href.split("/").pop() : undefined;
+    const id = first.documentId ?? first.versionId ?? first.taskId ?? href;
+    if (id !== undefined) return String(id);
+  }
+  return undefined;
+};
+
+beforeAll(async () => {
+  const envTask = Number(process.env.APRIMO_PM_TASK_ID);
+  const assigned = await aprimo.productivity.tasks.get({ limit: 50 });
+  taskId = Number.isFinite(envTask) && envTask > 0
+    ? envTask
+    : Number(firstId(assigned.data));
+
+  const uploads = await aprimo.productivity.tasks.getDocumentUploads(taskId);
+  documentId = process.env.APRIMO_PM_TASK_DOCUMENT_ID || (firstId(uploads.data) ?? "");
+
+  if (documentId) {
+    const versions = await aprimo.productivity.tasks.getDocumentVersions(taskId, documentId);
+    versionId = process.env.APRIMO_PM_TASK_DOCUMENT_VERSION_ID || (firstId(versions.data) ?? "");
+  } else {
+    versionId = process.env.APRIMO_PM_TASK_DOCUMENT_VERSION_ID || "";
+  }
+});
 
 describe("productivity tasks integration", () => {
   it("gets tasks", async () => {
@@ -70,6 +118,7 @@ describe("productivity tasks integration", () => {
   });
 
   it("gets versions of a task document upload", async () => {
+    required(documentId, "task document-upload");
     const res = await aprimo.productivity.tasks.getDocumentVersions(
       taskId,
       documentId,
@@ -79,6 +128,7 @@ describe("productivity tasks integration", () => {
   });
 
   it("gets a specific version of a task document upload", async () => {
+    required(versionId, "task document version");
     const res = await aprimo.productivity.tasks.getDocumentVersion(
       taskId,
       documentId,
@@ -146,6 +196,7 @@ describe("productivity tasks integration", () => {
   });
 
   it("uploads a document attachment to a task", async () => {
+    required(documentId, "task document-upload");
     const res = await aprimo.productivity.tasks.uploadDocumentAttachment(
       taskId,
       documentId,
@@ -155,6 +206,7 @@ describe("productivity tasks integration", () => {
   });
 
   it("uploads a document attachment version", async () => {
+    required(documentId, "task document-upload");
     const res = await aprimo.productivity.tasks.uploadDocumentAttachmentVersion(
       taskId,
       documentId,
@@ -165,6 +217,7 @@ describe("productivity tasks integration", () => {
   });
 
   it("deletes an uploaded version", async () => {
+    required(versionId, "task document version");
     const res = await aprimo.productivity.tasks.deleteUploadedVersion(
       taskId,
       documentId,

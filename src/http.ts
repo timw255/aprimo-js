@@ -213,10 +213,7 @@ function translateAxiosError(error: unknown): AprimoError {
     );
   }
 
-  const axiosError = error as AxiosError<{
-    exceptionType?: string;
-    exceptionMessage?: string;
-  }>;
+  const axiosError = error as AxiosError<AprimoErrorBody | string>;
 
   // Cancellation (AbortSignal etc.) takes priority — axios sets ERR_CANCELED.
   if (axios.isCancel(axiosError) || axiosError.code === "ERR_CANCELED") {
@@ -242,8 +239,9 @@ function translateAxiosError(error: unknown): AprimoError {
 
   const status = axiosError.response.status;
   const data = axiosError.response.data;
-  const aprimoErrorCode = data?.exceptionType;
-  const message = data?.exceptionMessage ?? axiosError.message;
+  const aprimoErrorCode =
+    typeof data === "object" && data !== null ? data.exceptionType : undefined;
+  const message = extractErrorMessage(data) ?? axiosError.message;
 
   const opts: AprimoHttpErrorOptions = {
     status,
@@ -266,6 +264,53 @@ function translateAxiosError(error: unknown): AprimoError {
 
   // Other 4xx (or anything else with a response) — generic HTTP error.
   return new AprimoHttpError(message, opts);
+}
+
+/**
+ * The error-body shapes Aprimo returns. The DAM API answers with
+ * `exceptionType` / `exceptionMessage`; the Productivity API answers with a
+ * `count` and an `errors` array, or occasionally a bare JSON string.
+ */
+interface AprimoErrorBody {
+  /** DAM: server-supplied error code. */
+  exceptionType?: string;
+  /** DAM: human-readable message. */
+  exceptionMessage?: string;
+  /** Productivity: number of entries in `errors`. */
+  count?: number;
+  /** Productivity: one entry per validation failure. */
+  errors?: ({ message?: string } | string)[];
+}
+
+/**
+ * Pull the server's message out of either error-body shape.
+ *
+ * Without this, a Productivity failure surfaces only as axios's generic
+ * "Request failed with status code 400" and the real reason — which the body
+ * does carry — is lost.
+ */
+function extractErrorMessage(
+  data: AprimoErrorBody | string | undefined,
+): string | undefined {
+  if (!data) return undefined;
+
+  // Some Productivity endpoints answer with a bare JSON string, e.g.
+  // `"ProjectId cannot be null."`.
+  if (typeof data === "string") return data || undefined;
+
+  if (typeof data.exceptionMessage === "string" && data.exceptionMessage) {
+    return data.exceptionMessage;
+  }
+
+  if (Array.isArray(data.errors)) {
+    const messages = data.errors
+      .map((e) => (typeof e === "string" ? e : e?.message))
+      .filter((m): m is string => typeof m === "string" && m.length > 0);
+
+    if (messages.length > 0) return messages.join("; ");
+  }
+
+  return undefined;
 }
 
 function deriveStatus(error: unknown, sdkError: AprimoError): number {

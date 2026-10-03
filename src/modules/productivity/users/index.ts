@@ -7,60 +7,78 @@ import { PmQueryParams } from "../../../model/productivity/PmQueryParams";
 import { PmSearchRequest } from "../../../model/productivity/PmSearchRequest";
 import { buildQueryString } from "../../../utils";
 
-/** Payload for `users.create`. */
+/**
+ * Payload for `users.create`.
+ *
+ * The PM API validates this against a JSON schema and rejects a create that
+ * omits any of the required properties below with
+ * `Required property '<Name>' not found in JSON`.
+ */
 export interface CreateUserRequest {
   /** Login identifier (typically email-shaped). */
   loginId: string;
   /** Email address. */
   email: string;
-  /** Last name (required by the PM API). */
+  /** Last name. */
   lastName: string;
+  /** Currency code id for the user's default currency. */
+  currencyCode: number;
+  /** Currency code id for labor-rate display. */
+  laborRateCurrencyCode: number;
+  /** Language id. */
+  languageId: number;
+  /** Locale id. */
+  localeId: number;
+  /** Date-format id. */
+  dateFormat: number;
+  /** Time-format id. */
+  timeFormat: number;
+  /** Number-format id. */
+  numberFormatId: number;
+  /** Time-zone id. */
+  timezoneId: number;
+  /** Default paper-size id for reports/exports. */
+  paperSize: number;
+  /** Whether the user receives HTML-format emails. */
+  htmlEmail: boolean;
+  /** Cross-domain analyze flag. */
+  analyzeAllDomains: number;
+  /** Whether the user is in a forced-PIN-reset state. */
+  isPinReset: number;
+  /** Ad-hoc user flag (non-licensed). */
+  adHocUser: boolean;
+  /** Active flag. */
+  activeFlag: number;
+  /**
+   * Application-user flag. Exactly which combination of `applicationUser`,
+   * `portalUser` and `reviewUser` is permitted depends on the licences the
+   * tenant holds; an unavailable combination is rejected with
+   * "Invalid user state requested."
+   */
+  applicationUser: boolean;
+  /** Portal-user flag. See {@link CreateUserRequest.applicationUser}. */
+  portalUser: boolean;
+  /** Review-user flag. See {@link CreateUserRequest.applicationUser}. */
+  reviewUser: boolean;
+
   /** First name. */
   firstName?: string;
-  /** User-type id (application user, portal user, etc.). */
+  /** Company name. Maximum 75 characters. */
+  company?: string;
+  /** User-type id. */
   userType?: number;
-  /** Currency code id for the user's default currency. */
-  currencyCode?: number;
-  /** Currency code id for labor-rate display. */
-  laborRateCurrencyCode?: number;
-  /** Language id. */
-  languageId?: number;
-  /** Locale id. */
-  localeId?: number;
   /** Auto-save preference (`1` enabled). */
   autoSave?: number;
-  /** Date-format id. */
-  dateFormat?: number;
-  /** Time-format id. */
-  timeFormat?: number;
-  /** Number-format id. */
-  numberFormatId?: number;
-  /** Time-zone id. */
-  timezoneId?: number;
-  /** Default paper-size id for reports/exports. */
-  paperSize?: number;
-  /** Whether the user receives HTML-format emails. */
-  htmlEmail?: boolean;
-  /** Cross-domain analyze flag. */
-  analyzeAllDomains?: number;
-  /** Whether the user is in a forced-PIN-reset state. */
-  isPinReset?: number;
-  /** Whether the password expires. */
-  passwordExpires?: number;
-  /** Ad-hoc user flag (non-licensed). */
-  adHocUser?: boolean;
-  /** Active flag. */
-  activeFlag?: number;
-  /** Application-user flag. */
-  applicationUser?: boolean;
-  /** Portal-user flag. */
-  portalUser?: boolean;
-  /** Review-user flag. */
-  reviewUser?: boolean;
-  /** Out-of-office flag. */
-  isOutOfOffice?: boolean;
-  /** Client logging verbosity (`0`–`n`). */
-  clientLoggingLevel?: number;
+  /** Whether the password expires. A flag, not a number of days. */
+  passwordExpires?: 0 | 1;
+  /** UI theme id. */
+  themeId?: number;
+  /** Notification-type id. */
+  notificationTypeId?: number;
+  /** Landing-page id the user opens on. */
+  preferredLandingPage?: number;
+  /** Spend-focused view preference. */
+  spendFocusedView?: number;
   /** Initial group ids to attach the user to. */
   groups?: number[];
   /** Initial user-rights (function + domain pairs) to grant. */
