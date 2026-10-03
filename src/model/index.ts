@@ -197,6 +197,7 @@ export * from "./OriginalRendition";
 export * from "./PagedCollection";
 export * from "./Permission";
 export * from "./PermissionCollection";
+export * from "./PermissionUpdate";
 export * from "./PermissionValue";
 export * from "./PermissionValueCollection";
 export * from "./PresetRendition";

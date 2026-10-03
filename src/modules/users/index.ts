@@ -3,18 +3,13 @@ import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
 import { PermissionValueCollection } from "../../model/PermissionValueCollection";
-import { SetActions } from "../../model/SetActions";
+import {
+  PermissionUpdate,
+  UpdatePermissionsRequest,
+} from "../../model/PermissionUpdate";
 import { buildHeaders } from "../../utils";
 import { User } from "../../model";
 
-export interface PermissionUpdate {
-  name: string;
-  value: "granted" | "denied" | "notset";
-}
-
-export interface UpdatePermissionsRequest {
-  permissions: SetActions<PermissionUpdate>;
-}
 
 export interface CreateUserRequest {
   name: string;
@@ -145,3 +140,5 @@ export const users = (client: HttpClient) => ({
     return client.put(`/api/core/user/${id}/permissions`, request);
   },
 });
+
+export type { PermissionUpdate, UpdatePermissionsRequest };

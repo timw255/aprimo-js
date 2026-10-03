@@ -45,18 +45,21 @@ describe("collections integration", () => {
   it("creates a dynamic collection with sub-expressions", async () => {
     const res = await aprimo.collections.createDynamicWithSubExpressions({
       name: `IntegrationDynamicSub_${Date.now()}`,
-      searchExpression: {
-        expression: "*",
-        languages: [],
-      },
+      searchExpression: { defaultLogicalOperator: "OR" },
       subExpressions: [
-        { expression: "*", languages: [] },
+        { expression: "ContentType = 'Asset'" },
+        { expression: "ContentType = 'Video'" },
       ],
     });
     expectOk(res);
     logShape("collections.createDynamicWithSubExpressions", res.data);
     expect(res.data?.id).toBeDefined();
     dynamicSubId = res.data!.id;
+
+    // the clauses must survive the round trip, not be silently dropped
+    const back = await aprimo.collections.getById(dynamicSubId);
+    expectOk(back);
+    expect(back.data?.searchExpression?.subExpressions).toHaveLength(2);
   });
 
   it("gets a list of collections", async () => {

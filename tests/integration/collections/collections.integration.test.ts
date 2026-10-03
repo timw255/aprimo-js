@@ -45,15 +45,12 @@ describe("collections integration", () => {
   it("creates a dynamic collection with sub-expressions", async () => {
     const res = await aprimo.collections.createDynamicWithSubExpressions({
       name: `Dynamic SubExpr Collection ${Date.now()}`,
-      searchExpression: {
-        expression: "*",
-        languages: [],
-      },
+      // `expression` and `subExpressions` are mutually exclusive, so the outer
+      // expression only carries how the clauses are joined.
+      searchExpression: { defaultLogicalOperator: "OR" },
       subExpressions: [
-        {
-          expression: "*",
-          languages: [],
-        },
+        { expression: "ContentType = 'Asset'" },
+        { expression: "ContentType = 'Video'" },
       ],
     });
 

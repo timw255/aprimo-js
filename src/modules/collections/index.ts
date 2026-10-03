@@ -12,6 +12,7 @@ import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
 import { RecordCollection } from "../../model/RecordCollection";
 import { HeaderSource } from "../../select";
+import { SearchExpression } from "../search";
 import { SetActions } from "../../model";
 
 export interface CreateStaticCollectionRequest {
@@ -31,19 +32,14 @@ export interface CreateDynamicCollectionRequest {
 export interface CreateDynamicCollectionWithSubExpressionsRequest {
   name: string;
   type?: "dynamic";
-  searchExpression: SearchExpression;
-  subExpressions: SubExpression[];
+  /**
+   * Outer expression. Leave `expression` unset here — the API rejects a
+   * search expression that carries both an `expression` and `subExpressions`.
+   */
+  searchExpression: Omit<SearchExpression, "subExpressions">;
+  /** Clauses joined by `searchExpression.defaultLogicalOperator`. */
+  subExpressions: SearchExpression[];
   tag?: string;
-}
-
-export interface SearchExpression {
-  expression: string;
-  languages: string[];
-}
-
-export interface SubExpression {
-  expression: string;
-  languages: string[];
 }
 
 export interface CreateCollectionResponse {
@@ -254,8 +250,13 @@ export const collections = (client: HttpClient) => ({
   createDynamicWithSubExpressions: async (
     request: CreateDynamicCollectionWithSubExpressionsRequest,
   ): Promise<ApiResult<CreateCollectionResponse>> => {
+    const { subExpressions, searchExpression, ...rest } = request;
+
+    // `subExpressions` belong inside the search expression; sent alongside it
+    // they are accepted and silently discarded.
     return client.post("/api/core/collections", {
-      ...request,
+      ...rest,
+      searchExpression: { ...searchExpression, subExpressions },
       type: "dynamic",
     });
   },
@@ -495,3 +496,5 @@ export const collections = (client: HttpClient) => ({
     return client.put(`/api/core/collection/${id}/comments/status`, request);
   },
 });
+
+export type { SearchExpression };

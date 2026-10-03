@@ -4,17 +4,12 @@ import { ApiResult } from "../../client";
 import { HttpClient } from "../../http";
 import { PagedCollection } from "../../model/PagedCollection";
 import { PermissionValueCollection } from "../../model/PermissionValueCollection";
-import { SetActions } from "../../model/SetActions";
+import {
+  PermissionUpdate,
+  UpdatePermissionsRequest,
+} from "../../model/PermissionUpdate";
 import { buildHeaders } from "../../utils";
 
-export interface PermissionUpdate {
-  name: string;
-  value: "granted" | "denied" | "notset";
-}
-
-export interface UpdatePermissionsRequest {
-  permissions: SetActions<PermissionUpdate>;
-}
 
 export interface CreateUserGroupRequest {
   name: string;
@@ -147,3 +142,5 @@ export const userGroups = (client: HttpClient) => ({
     return client.put(`/api/core/usergroup/${userGroupId}/permissions`, request);
   },
 });
+
+export type { PermissionUpdate, UpdatePermissionsRequest };

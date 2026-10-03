@@ -1,4 +1,5 @@
 import { ApiResult } from "../../../client";
+import { CreateActivityMilestoneRequest } from "../activity-milestones";
 import { HttpClient } from "../../../http";
 import { Activity } from "../../../model/productivity/Activity";
 import { ActivityMilestone } from "../../../model/productivity/ActivityMilestone";
@@ -49,20 +50,6 @@ export interface CreateActivityRequest {
 export type UpdateActivityRequest = Partial<CreateActivityRequest>;
 
 /** Payload for `activities.createMilestone`. */
-export interface CreateActivityMilestoneRequest {
-  /** Milestone display title. */
-  title: string;
-  /** Long-form description. */
-  description?: string;
-  /** Milestone start. */
-  startDate: string;
-  /** Milestone end. */
-  endDate: string;
-  /** Owning activity id (also reflected in the URL path). */
-  activityId: number;
-  /** Extended-attribute id classifying the milestone, if applicable. */
-  milestoneEaId?: number;
-}
 
 /** Search payload — uses the generic PM search-tree grammar. */
 export type ActivitySearchRequest = PmSearchRequest;
@@ -194,3 +181,5 @@ export const activities = (client: HttpClient) => ({
     return client.post(`/api/activities/milestone/${activityId}`, request);
   },
 });
+
+export type { CreateActivityMilestoneRequest };

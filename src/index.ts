@@ -161,3 +161,117 @@ export type {
   AprimoAuthCredentialsErrorOptions,
   AprimoUploadSegmentErrorOptions,
 } from "./errors";
+
+// ---------------------------------------------------------------------------
+// Core types
+//
+// `ApiResult<T>` is what every SDK method resolves to; the rest are the shared
+// option/parameter shapes those methods accept.
+// ---------------------------------------------------------------------------
+export type { ApiResult } from "./client";
+export type { HttpClientOptions, RequestOptions } from "./http";
+export type { QueryParams } from "./model/QueryParams";
+export type { SetActions } from "./model/SetActions";
+
+// ---------------------------------------------------------------------------
+// Request and response shapes, per module
+// ---------------------------------------------------------------------------
+export type { CreateCheckRequest, UpdateCheckRequest, CreateCheckResultRequest, CreateCheckResultFindingData, UpdateCheckResultRequest, CreateCheckFindingRequest, UpdateCheckFindingRequest } from "./modules/checks";
+export type { EditContentTypeRequest, CreateContentTypeRequest, CreateContentTypeResponse } from "./modules/content-types";
+export type { CreateSingleLineTextFieldDefinitionRequest, CreateMultiLineTextFieldDefinitionRequest, CreateHtmlFieldDefinitionRequest, CreateNumericFieldDefinitionRequest, CreateDateFieldDefinitionRequest, CreateDateTimeFieldDefinitionRequest, CreateTimeFieldDefinitionRequest, CreateClassificationListFieldDefinitionRequest, CreateOptionListFieldDefinitionRequest, CreateRecordLinkFieldDefinitionRequest, CreateRecordListFieldDefinitionRequest, CreateUserListFieldDefinitionRequest, CreateUserGroupListFieldDefinitionRequest, CreateDurationFieldDefinitionRequest, CreateJsonFieldDefinitionRequest, CreateLanguageListFieldDefinitionRequest, CreateRichContentFieldDefinitionRequest, CreateTextListFieldDefinitionRequest, CreateHyperlinkListFieldDefinitionRequest, CreateFieldDefinitionRequest, UpdateSingleLineTextFieldDefinitionRequest, UpdateMultiLineTextFieldDefinitionRequest, UpdateHtmlFieldDefinitionRequest, UpdateNumericFieldDefinitionRequest, UpdateDateFieldDefinitionRequest, UpdateDateTimeFieldDefinitionRequest, UpdateTimeFieldDefinitionRequest, UpdateClassificationListFieldDefinitionRequest, UpdateOptionListFieldDefinitionRequest, UpdateRecordListFieldDefinitionRequest, UpdateRecordLinkFieldDefinitionRequest, UpdateUserListFieldDefinitionRequest, UpdateUserGroupListFieldDefinitionRequest, UpdateDurationFieldDefinitionRequest, UpdateJsonFieldDefinitionRequest, UpdateLanguageListFieldDefinitionRequest, UpdateRichContentFieldDefinitionRequest, UpdateTextListFieldDefinitionRequest, UpdateHyperlinkListFieldDefinitionRequest, UpdateFieldDefinitionRequest } from "./modules/field-definitions";
+export type { CreateFieldGroupRequest, UpdateFieldGroupRequest } from "./modules/field-groups";
+export type { CreateFileTypeRequest, UpdateFileTypeRequest, CreateFileTypeResponse } from "./modules/file-types";
+export type { CreateLanguageRequest, UpdateLanguageRequest, CreateLanguageResponse } from "./modules/languages";
+export type { MaintenanceJobTarget, MaintenanceJobAction, CreateMaintenanceJobRequest, CreateMaintenanceJobResponse } from "./modules/maintenance-jobs";
+export type { CreateOrderTarget, CreateDownloadOrderRequest, CreateEmailOrderRequest, CreateFtpResortOrderRequest, CreatePublicCdnOrderRequest, CreateOrderRequest } from "./modules/orders";
+export type { CreateActivityCellTreatmentRequest, UpdateActivityCellTreatmentRequest } from "./modules/productivity/activity-cell-treatments";
+export type { CreateActivityCellRequest, UpdateActivityCellRequest } from "./modules/productivity/activity-cells";
+export type { CreateActivityOfferRequest, UpdateActivityOfferRequest } from "./modules/productivity/activity-offers";
+export type { CreateActivityProposalRequest, UpdateActivityProposalRequest, ActivityProposalSearchRequest } from "./modules/productivity/activity-proposals";
+export type { CreateActivityRoleRequest, UpdateActivityRoleRequest, AddActivityRoleMembersRequest } from "./modules/productivity/activity-roles";
+export type { CreateActivityTreatmentRequest, UpdateActivityTreatmentRequest } from "./modules/productivity/activity-treatments";
+export type { CreateAnnotationRequest } from "./modules/productivity/annotations";
+export type { CreateAttachmentVersionRequest } from "./modules/productivity/attachment-versions";
+export type { CreateAttachmentRequest, UpdateAttachmentRequest, AttachmentSearchRequest } from "./modules/productivity/attachments";
+export type { CreateCommitmentRequest, UpdateCommitmentRequest, CommitmentSearchRequest } from "./modules/productivity/commitments";
+export type { UpdateContentPlanRequest, AddContentPlanActivitiesRequest, ShareContentPlanRequest } from "./modules/productivity/content-plans";
+export type { CreateDigitalAssetRenditionRequest } from "./modules/productivity/digital-asset-renditions";
+export type { CreateDigitalAssetVersionRequest, UpdateDigitalAssetVersionTagsRequest } from "./modules/productivity/digital-asset-versions";
+export type { CreateDigitalAssetRequest, UpdateDigitalAssetRequest } from "./modules/productivity/digital-assets";
+export type { UpdateExtendedAttributePicklistRequest } from "./modules/productivity/extended-attribute-options";
+export type { CreateFinancialHierarchyRequest, UpdateFinancialHierarchyRequest } from "./modules/productivity/financial-hierarchies";
+export type { CreateFundingAccountRequest, UpdateFundingAccountRequest } from "./modules/productivity/funding-accounts";
+export type { CreateGenericObjectRequest, UpdateGenericObjectRequest, GenericObjectSearchRequest } from "./modules/productivity/generic-objects";
+export type { CreateGroupRequest, UpdateGroupRequest, GroupSearchRequest } from "./modules/productivity/groups";
+export type { CreateInvoiceRequest, UpdateInvoiceRequest, InvoiceSearchRequest } from "./modules/productivity/invoices";
+export type { CreateJournalVoucherRequest, UpdateJournalVoucherRequest, JournalVoucherSearchRequest } from "./modules/productivity/journal-vouchers";
+export type { LookupQueryParams } from "./modules/productivity/lookup-lists";
+export type { UpdateRegionPreferencesRequest } from "./modules/productivity/my-preferences";
+export type { CreateOfferRequest, UpdateOfferRequest } from "./modules/productivity/offers";
+export type { ProgramProposalSearchRequest } from "./modules/productivity/program-proposals";
+export type { UpdateProgramRequest } from "./modules/productivity/programs";
+export type { CreateProjectRequest, UpdateProjectRequest, CreateProjectRoleRequest, ProjectAttachmentLinkRequest } from "./modules/productivity/projects";
+export type { ResourceQueryRequest, ResourceQueryResponse } from "./modules/productivity/resources";
+export type { CreateSupplierRequest, UpdateSupplierRequest, SupplierSearchRequest } from "./modules/productivity/suppliers";
+export type { CreateSimpleTaskRequest, UpdateTaskRequest, TaskSearchRequest, DelegateTaskRequest } from "./modules/productivity/tasks";
+export type { UpdateTreatmentRequest, TreatmentSearchRequest } from "./modules/productivity/treatments";
+export type { ChunkUploadCheckParams, ChunkUploadCompleteRequest, ChunkUploadOptions } from "./modules/productivity/uploader";
+export type { CreateUserRoleRequest, UpdateUserRoleRequest } from "./modules/productivity/user-roles";
+export type { CreatePublicLinkRequest, UpdatePublicLinkRequest } from "./modules/public-links";
+export type { CreateRecordRequest, UpdateRecordRequest, CreateRecordResponse } from "./modules/records";
+export type { CreateRuleRequest, UpdateRuleRequest, CreateRuleResponse } from "./modules/rules";
+export type { SearchExpression, ClassificationSearchRequest, RecordSearchRequest, Facet, FacetValue } from "./modules/search";
+export type { CreateSettingCategoryRequest, UpdateSettingCategoryRequest } from "./modules/setting-categories";
+export type { CreateBooleanSettingDefinitionRequest, CreateTextSettingDefinitionRequest, CreateNumericSettingDefinitionRequest, CreateDateTimeSettingDefinitionRequest, CreateEncryptedTextSettingDefinitionRequest, CreateXmlSettingDefinitionRequest, CreateReferenceSettingDefinitionRequest, CreateRoleSettingDefinitionRequest, CreateSettingDefinitionRequest, UpdateSettingDefinitionRequest } from "./modules/setting-definitions";
+export type { CreateTranslationRequest, UpdateTranslationRequest, CreateTranslationResponse } from "./modules/translations";
+export type { UploadTokenResponse, UploadSegmentSetupResponse, UploadCommitResponse, UploadOptions } from "./modules/uploader";
+
+// Modules that declare the same type name are re-exported explicitly so each
+// one keeps a distinct name at the package root.
+export type { CreateUserRequest, UpdateUserRequest } from "./modules/users";
+export type {
+  PermissionUpdate,
+  UpdatePermissionsRequest,
+} from "./model/PermissionUpdate";
+export type {
+  CreateUserGroupRequest,
+  UpdateUserGroupRequest,
+  CreateUserGroupResponse,
+} from "./modules/user-groups";
+export type {
+  ClassificationFieldUpdate,
+  ClassificationParent,
+  CreateClassificationRequest,
+  UpdateClassificationRequest,
+  CreateClassificationResponse,
+  ClassificationPermissionActions,
+  UpdateClassificationTreePermissionsRequest,
+  UpdateClassificationRecordPermissionsRequest,
+  UpdateClassificationDownloadPermissionsRequest,
+} from "./modules/classifications";
+export type {
+  CreateStaticCollectionRequest,
+  CreateDynamicCollectionRequest,
+  CreateDynamicCollectionWithSubExpressionsRequest,
+  CreateCollectionResponse,
+  UpdateStaticCollectionRecordsRequest,
+  CollectionPermissionActions,
+  UpdateCollectionPermissionsRequest,
+  CreateCollectionCommentRequest,
+  UpdateCollectionCommentRequest,
+  MarkCollectionCommentsReadRequest,
+  CreateCollectionCommentResponse,
+  UpdateCollectionRequest,
+} from "./modules/collections";
+export type {
+  CreateUserRequest as CreatePmUserRequest,
+  UpdateUserRequest as UpdatePmUserRequest,
+  UserSearchRequest as PmUserSearchRequest,
+} from "./modules/productivity/users";
+export type {
+  CreateActivityRequest,
+  UpdateActivityRequest,
+} from "./modules/productivity/activities";
+export type {
+  CreateActivityMilestoneRequest,
+} from "./modules/productivity/activity-milestones";
