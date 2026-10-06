@@ -51,7 +51,7 @@ export interface Rule {
   isInternal: boolean;
   /** Gets the last modification datetime in UTC time. Format: date-time. */
   modifiedOn: string;
-  /** Gets the name of this rule. */
+  /** Gets the name of this rule. Max length 50. */
   name: string;
   /** Gets or sets the value of the Tag for this object. The value of this property has to be valid XML code. This property will not be returned by default. In order to include the property in the response, add a header with the name 'select-rule' and the value 'Tag' to your request. */
   tag: string;

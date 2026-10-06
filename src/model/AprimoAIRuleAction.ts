@@ -1,7 +1,7 @@
 import { ExecutionTime } from "./ExecutionTime";
 
 /**
- * Controls which Aprimo AI features to run.
+ * A single Aprimo AI feature. `options` carries one or more of these.
  */
 export type AprimoAIOption =
   | "None"
@@ -10,6 +10,13 @@ export type AprimoAIOption =
   | "CustomSmartTags"
   | "Text"
   | "Transcripts";
+
+/**
+ * One or more {@link AprimoAIOption} values. The API accepts a single value or
+ * a comma-separated list (`"SmartTags,Faces"`) and returns it joined with
+ * `", "` — so a read can produce a value that is not a single option.
+ */
+export type AprimoAIOptions = AprimoAIOption | (string & {});
 
 /**
  * Representation of Aprimo AI rule action.
@@ -24,7 +31,7 @@ export interface AprimoAIRuleAction {
   /** Index of a rule action in collection. Format: int32. */
   index?: number;
   /**
-   * Controls which Aprimo AI features to run.
+   * Which Aprimo AI features to run — one option, or several comma-separated.
    */
-  options: AprimoAIOption;
+  options: AprimoAIOptions;
 }

@@ -88,4 +88,77 @@ describe("rules integration", () => {
     expectOk(res);
     logShape("rules.delete", res.data);
   });
+
+  // Each of these action types was previously absent from the `RuleAction`
+  // union, so a rule using one could neither be written nor narrowed on read.
+  const newActions = [
+    { actionType: "PredictiveMetadata", executionTime: "Delayed" },
+    { actionType: "EnhancedCaptioning", executionTime: "Delayed" },
+    { actionType: "VideoSummary", executionTime: "Delayed" },
+    { actionType: "ResolveContentType", executionTime: "Delayed" },
+    { actionType: "RunTextMatch", executionTime: "Delayed" },
+    { actionType: "RunReviewAgent", executionTime: "Delayed", builtInAgentId: "BrandCompliance" },
+    { actionType: "CreateActivity", executionTime: "Delayed", activityDuration: 60, activityTypeId: 1 },
+  ] as const;
+
+  it.each(newActions.map((a) => [a.actionType, a] as const))(
+    "creates a rule with the %s action",
+    async (_name, action) => {
+      const res = await aprimo.rules.create({
+        enabled: false,
+        expression: "",
+        includeDraftRecords: false,
+        isInternal: false,
+        name: `rule ${action.actionType} ${Date.now() % 100000}`,
+        tag: "",
+        target: "Record",
+        trigger: "WhenSavedOrDeleted",
+        conditions: { addOrUpdate: [{ conditionType: "ObjectChanged" }] },
+        actions: { addOrUpdate: [action] },
+      });
+      expectOk(res);
+      expect(res.data?.id).toBeDefined();
+      await aprimo.rules.delete(res.data!.id);
+    },
+  );
+
+  it("creates a rule with the FileProcessingCompleted condition", async () => {
+    const res = await aprimo.rules.create({
+      enabled: false,
+      expression: "",
+      includeDraftRecords: false,
+      isInternal: false,
+      name: `rule FileProcessingCompleted ${Date.now() % 100000}`,
+      tag: "",
+      target: "Record",
+      trigger: "WhenSavedOrDeleted",
+      conditions: { addOrUpdate: [{ conditionType: "FileProcessingCompleted" }] },
+      actions: { addOrUpdate: [{ actionType: "RefreshFiles", executionTime: "Delayed" }] },
+    });
+    expectOk(res);
+    expect(res.data?.id).toBeDefined();
+    await aprimo.rules.delete(res.data!.id);
+  });
+
+  it("accepts a comma-separated AprimoAI options list", async () => {
+    const res = await aprimo.rules.create({
+      enabled: false,
+      expression: "",
+      includeDraftRecords: false,
+      isInternal: false,
+      name: `rule AprimoAI ${Date.now() % 100000}`,
+      tag: "",
+      target: "Record",
+      trigger: "WhenSavedOrDeleted",
+      conditions: { addOrUpdate: [{ conditionType: "ObjectChanged" }] },
+      actions: {
+        addOrUpdate: [
+          { actionType: "AprimoAI", executionTime: "Delayed", options: "SmartTags,Faces" },
+        ],
+      },
+    });
+    expectOk(res);
+    expect(res.data?.id).toBeDefined();
+    await aprimo.rules.delete(res.data!.id);
+  });
 });

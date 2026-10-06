@@ -10,6 +10,14 @@ import { CreatePublicUrisRuleAction } from "./CreatePublicUrisRuleAction";
 import { CreateRenditionsRuleAction } from "./CreateRenditionsRuleAction";
 import { CreateReviewFileRuleAction } from "./CreateReviewFileRuleAction";
 import { DeletePublicUrisRuleAction } from "./DeletePublicUrisRuleAction";
+import { CreateActivityRuleAction } from "./CreateActivityRuleAction";
+import { EnhancedCaptioningRuleAction } from "./EnhancedCaptioningRuleAction";
+import { PredictiveMetadataRuleAction } from "./PredictiveMetadataRuleAction";
+import { ResolveContentTypeRuleAction } from "./ResolveContentTypeRuleAction";
+import { RunReviewAgentRuleAction } from "./RunReviewAgentRuleAction";
+import { RunTextMatchRuleAction } from "./RunTextMatchRuleAction";
+import { RunTranslationAgentRuleAction } from "./RunTranslationAgentRuleAction";
+import { VideoSummaryRuleAction } from "./VideoSummaryRuleAction";
 import { ReferenceRuleAction } from "./ReferenceRuleAction";
 import { RefreshFilesRuleAction } from "./RefreshFilesRuleAction";
 import { ScheduleResaveOfRecordRuleAction } from "./ScheduleResaveOfRecordRuleAction";
@@ -28,17 +36,25 @@ export type RuleAction =
   | ChangeContentTypeRuleAction
   | ChangeRecordStatusRuleAction
   | ClassifyRecordRuleAction
+  | CreateActivityRuleAction
   | CreatePresetCropsRuleAction
   | CreatePublicUrisRuleAction
   | CreateRenditionsRuleAction
   | CreateReviewFileRuleAction
   | DeletePublicUrisRuleAction
+  | EnhancedCaptioningRuleAction
+  | PredictiveMetadataRuleAction
   | ReferenceRuleAction
   | RefreshFilesRuleAction
+  | ResolveContentTypeRuleAction
+  | RunReviewAgentRuleAction
+  | RunTextMatchRuleAction
+  | RunTranslationAgentRuleAction
   | ScheduleResaveOfRecordRuleAction
   | SendEmailRuleAction
   | SetFieldValueRuleAction
   | UnclassifyRecordRuleAction
+  | VideoSummaryRuleAction
   | AprimoAIUpdatePerformanceRuleAction;
 
 /**

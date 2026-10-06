@@ -19,6 +19,8 @@ import { ObjectDeletedRuleCondition } from "./ObjectDeletedRuleCondition";
 import { RecordStatusChangedRuleCondition } from "./RecordStatusChangedRuleCondition";
 import { RecordStatusChangedToRuleCondition } from "./RecordStatusChangedToRuleCondition";
 import { RecordStatusIsRuleCondition } from "./RecordStatusIsRuleCondition";
+import { FileProcessingCompletedRuleCondition } from "./FileProcessingCompletedRuleCondition";
+import { MultilingualFieldValuesChangedRuleCondition } from "./MultilingualFieldValuesChangedRuleCondition";
 import { ReferenceRuleCondition } from "./ReferenceRuleCondition";
 
 /**
@@ -36,10 +38,12 @@ export type RuleCondition =
   | ContentTypeIsRuleCondition
   | CurrentlyLoggedOnUserRuleCondition
   | FileAddedRuleCondition
+  | FileProcessingCompletedRuleCondition
   | HasFieldValueChangedRuleCondition
   | MasterPreviewChangedRuleCondition
   | MasterPreviewExistsRuleCondition
   | MovieAddedWithoutMoviePreviewRuleCondition
+  | MultilingualFieldValuesChangedRuleCondition
   | ObjectChangedRuleCondition
   | ObjectCreatedOrChangedRuleCondition
   | ObjectCreatedRuleCondition
