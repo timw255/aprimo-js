@@ -1,4 +1,4 @@
-import { ExecutionTime } from "./ExecutionTime";
+import { DelayedExecutionTime } from "./ExecutionTime";
 
 /**
  * Which multilingual fields the translation agent processes.
@@ -16,7 +16,7 @@ export interface RunTranslationAgentRuleAction {
    */
   actionType: "RunTranslationAgent";
   /** Gets the execution time of the rule action. */
-  executionTime?: ExecutionTime;
+  executionTime?: DelayedExecutionTime;
   /** Ids of the multilingual field definitions to translate. */
   fieldDefinitionIds?: (string | null)[];
   /** Whether to translate only changed fields, or all selected ones. */

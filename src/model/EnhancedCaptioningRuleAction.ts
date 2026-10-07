@@ -1,4 +1,4 @@
-import { ExecutionTime } from "./ExecutionTime";
+import { DelayedExecutionTime } from "./ExecutionTime";
 
 /**
  * Representation of Enhanced Captioning rule action.
@@ -9,7 +9,7 @@ export interface EnhancedCaptioningRuleAction {
    */
   actionType: "EnhancedCaptioning";
   /** Gets the execution time of the rule action. */
-  executionTime?: ExecutionTime;
+  executionTime?: DelayedExecutionTime;
   /** Index of a rule action in collection. Format: int32. */
   index?: number;
 }

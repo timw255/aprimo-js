@@ -1,4 +1,4 @@
-import { ExecutionTime } from "./ExecutionTime";
+import { DelayedExecutionTime } from "./ExecutionTime";
 
 /**
  * A single Aprimo AI feature. `options` carries one or more of these.
@@ -27,7 +27,7 @@ export interface AprimoAIRuleAction {
    */
   actionType: "AprimoAI";
   /** Gets the execution time of the rule action. */
-  executionTime?: ExecutionTime;
+  executionTime?: DelayedExecutionTime;
   /** Index of a rule action in collection. Format: int32. */
   index?: number;
   /**

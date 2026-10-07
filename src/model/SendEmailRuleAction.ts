@@ -1,4 +1,4 @@
-import { ExecutionTime } from "./ExecutionTime";
+import { DelayedExecutionTime } from "./ExecutionTime";
 
 /**
  * Target type selected by the user.
@@ -14,7 +14,7 @@ export interface SendEmailRuleAction {
    */
   actionType: "SendEmail";
   /** Gets the execution time of the rule action. */
-  executionTime?: ExecutionTime;
+  executionTime?: DelayedExecutionTime;
   /** Index of a rule action in collection. Format: int32. */
   index?: number;
   /** Reference that contains mail template for user's recipients. */

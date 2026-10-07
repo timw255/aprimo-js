@@ -4,7 +4,9 @@ import { RuleConditionCollection } from "./RuleConditionCollection";
 import { User } from "./User";
 
 /**
- * Object types that can trigger a rule.
+ * Object types that can trigger a rule. Which of these a given tenant will
+ * actually save is configurable; a disallowed one fails with "Saving the Rule
+ * with target 'X' is not allowed".
  */
 export type RuleTarget =
   | "SettingDefinition"
@@ -23,8 +25,6 @@ export type RuleTarget =
   | "FileType"
   | "Organization"
   | "Site"
-  | "Publication"
-  | "Subscription"
   | "Filestore"
   | "SavedView";
 
